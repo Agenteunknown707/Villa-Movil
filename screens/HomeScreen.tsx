@@ -2,22 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
-export default function HomeScreen() {
-  const router = useRouter();
-
+export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scrollView}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={{ uri: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png' }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-        
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeText}>Bienvenido a</Text>
           <Text style={styles.cityName}>Villa de Álvarez</Text>
@@ -28,7 +17,7 @@ export default function HomeScreen() {
 
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <Ionicons name="checkmark-circle" size={24} color="#8BC34A" />
+            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             <Text style={styles.statNumber}>24</Text>
             <Text style={styles.statLabel}>Resueltos</Text>
           </View>
@@ -38,7 +27,7 @@ export default function HomeScreen() {
             <Text style={styles.statLabel}>En Proceso</Text>
           </View>
           <View style={styles.statCard}>
-            <Ionicons name="alert-circle" size={24} color="#E91E63" />
+            <Ionicons name="alert-circle" size={24} color="#F44336" />
             <Text style={styles.statNumber}>8</Text>
             <Text style={styles.statLabel}>Pendientes</Text>
           </View>
@@ -66,8 +55,8 @@ export default function HomeScreen() {
                   <View style={[
                     styles.statusIndicator, 
                     { backgroundColor: 
-                      item === 1 ? '#8BC34A' : 
-                      item === 2 ? '#FF9800' : '#E91E63' 
+                      item === 1 ? '#4CAF50' : 
+                      item === 2 ? '#FF9800' : '#F44336' 
                     }
                   ]} />
                   <Text style={styles.statusText}>
@@ -82,7 +71,7 @@ export default function HomeScreen() {
 
         <TouchableOpacity 
           style={styles.reportButton}
-          onPress={() => router.push('/(tabs)/report')}
+          onPress={() => navigation.navigate('ReportIncident')}
         >
           <Ionicons name="add-circle" size={20} color="white" />
           <Text style={styles.reportButtonText}>Reportar Nueva Incidencia</Text>
@@ -100,14 +89,6 @@ const styles = StyleSheet.create({
   scrollView: {
     padding: 16,
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  logo: {
-    width: 180,
-    height: 90,
-  },
   welcomeSection: {
     marginBottom: 24,
   },
@@ -118,7 +99,7 @@ const styles = StyleSheet.create({
   cityName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#E91E63', // Rosa del logo
+    color: '#0C6291',
     marginBottom: 8,
   },
   appDescription: {
@@ -156,7 +137,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#333',
   },
   recentReportsContainer: {
     marginBottom: 24,
@@ -207,7 +187,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   reportButton: {
-    backgroundColor: '#E91E63', // Rosa del logo
+    backgroundColor: '#0C6291',
     borderRadius: 8,
     padding: 16,
     flexDirection: 'row',

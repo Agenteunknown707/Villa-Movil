@@ -1,19 +1,21 @@
 import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
-
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, Text, View, Image } from 'react-native';
 
 export default function NotFoundScreen() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">This screen doesn't exist.</ThemedText>
+      <Stack.Screen options={{ title: 'Página no encontrada' }} />
+      <View style={styles.container}>
+        <Image
+          source={{ uri: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png' }}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Esta pantalla no existe</Text>
         <Link href="/" style={styles.link}>
-          <ThemedText type="link">Go to home screen!</ThemedText>
+          <Text style={styles.linkText}>Volver a la pantalla de inicio</Text>
         </Link>
-      </ThemedView>
+      </View>
     </>
   );
 }
@@ -24,9 +26,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  logo: {
+    width: 200,
+    height: 100,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#333',
   },
   link: {
     marginTop: 15,
-    paddingVertical: 15,
+    paddingVertical: 10,
+  },
+  linkText: {
+    fontSize: 16,
+    color: '#E91E63', // Rosa del logo
   },
 });

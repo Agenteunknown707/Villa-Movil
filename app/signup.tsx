@@ -81,7 +81,7 @@ export default function SignupScreen() {
             ]}
           >
             <Image
-              source={{ uri:'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png' }}
+              source={{ uri:'https://2021-2024.villadealvarez.gob.mx/assets/img/2021/slider_7.png' }}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -192,7 +192,6 @@ export default function SignupScreen() {
                   style={styles.signupButton}
                 >
                   <Text style={styles.signupButtonText}>Registrarse</Text>
-                  <Ionicons name="arrow-forward" size={20} color="white" />
                 </LinearGradient>
               </TouchableOpacity>
               
@@ -256,8 +255,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 300,
+    height: 120,
   },
   formContainer: {
     width: '100%',
@@ -266,7 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgb(255, 255, 255)',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

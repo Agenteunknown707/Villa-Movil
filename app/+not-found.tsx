@@ -59,7 +59,7 @@ export default function NotFoundScreen() {
               ]}
             >
               <Image
-                source={{ uri: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png' }}
+                source={{ uri: 'https://2021-2024.villadealvarez.gob.mx/assets/img/2021/slider_7.png' }}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 4000,
+    height: 150,
   },
   title: {
     fontSize: 22,

@@ -1,29 +1,51 @@
-import React, { useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+"use client"
+
+import { useRef, useEffect } from "react"
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   Image,
   Animated,
-  Dimensions
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+  Dimensions,
+  TextInput,
+  FlatList,
+} from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
+import { Ionicons } from "@expo/vector-icons"
+import { useRouter } from "expo-router"
+import { LinearGradient } from "expo-linear-gradient"
+import { BlurView } from "expo-blur"
+import Carousel from "react-native-reanimated-carousel"
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window")
+
+// Datos de ejemplo para categorías
+const CATEGORIES = [
+  { id: "1", name: "Baches", icon: "construct" },
+  { id: "2", name: "Alumbrado", icon: "flashlight" },
+  { id: "3", name: "Basura", icon: "trash" },
+  { id: "4", name: "Agua", icon: "water" },
+  { id: "5", name: "Seguridad", icon: "shield" },
+]
+
+
+
 
 export default function HomeScreen() {
-  const router = useRouter();
-  
+  const router = useRouter()
+
+  const images = [
+    { id: 1, uri: "https://elpulsodecolima.com/wp-content/uploads/2023/03/vacaciones-en-la-villa2-e1680027446934.jpg" },
+    { id: 2, uri: "https://aventurateamexico.com/wp-content/uploads/2022/08/jardin-de-la-villa-al-1920x1440.jpg" },
+    { id: 3, uri: "http://www.colimanoticias.com/wp-content/uploads/2016/08/ayuntamiento-de-villa-de-alvarez-agosto.jpg" },
+  ]
+
   // Animaciones
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(30)).current
 
   useEffect(() => {
     Animated.parallel([
@@ -37,119 +59,93 @@ export default function HomeScreen() {
         duration: 800,
         useNativeDriver: true,
       }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      })
-    ]).start();
-  }, []);
+    ]).start()
+  }, [])
 
+  const renderCategoryItem = ({ item }) => (
+    <TouchableOpacity style={styles.categoryItem}>
+      <View style={styles.categoryIconContainer}>
+        <Ionicons name={item.icon} size={24} color="#E91E63" />
+      </View>
+      <Text style={styles.categoryName}>{item.name}</Text>
+    </TouchableOpacity>
+  )
+
+  
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        <Animated.View 
-          style={[
-            styles.logoContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ scale: scaleAnim }]
-            }
-          ]}
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <ScrollView contentContainerStyle={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Hero Section con Gradiente */}
+       
+        <LinearGradient
+          colors={["#E91E63", "#9C27B0"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.heroSection}
         >
-          <Image
-            source={{ uri: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png' }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </Animated.View>
-        
-        <Animated.View 
-          style={[
-            styles.welcomeSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <Text style={styles.welcomeText}>Bienvenido a</Text>
-          <Text style={styles.cityName}>Villa de Álvarez</Text>
-          <Text style={styles.appDescription}>
-            Ayúdanos a mejorar nuestra ciudad reportando incidencias urbanas
-          </Text>
-        </Animated.View>
+          <Animated.View
+            style={[
+              styles.heroContent,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <Text style={styles.heroTitle}>Aplicación de reportes ciudadanos</Text>
+            <Text style={styles.heroSubtitle}>Ayúdanos a mejorar nuestra ciudad</Text>
 
-        <Animated.View 
-          style={[
-            styles.statsContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <BlurView intensity={70} tint="light" style={styles.statCard}>
-            <Ionicons name="checkmark-circle" size={24} color="#8BC34A" />
-            <Text style={styles.statNumber}>24</Text>
-            <Text style={styles.statLabel}>Resueltos</Text>
-          </BlurView>
-          <BlurView intensity={70} tint="light" style={styles.statCard}>
-            <Ionicons name="time" size={24} color="#FF9800" />
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>En Proceso</Text>
-          </BlurView>
-          <BlurView intensity={70} tint="light" style={styles.statCard}>
-            <Ionicons name="alert-circle" size={24} color="#E91E63" />
-            <Text style={styles.statNumber}>8</Text>
-            <Text style={styles.statLabel}>Pendientes</Text>
-          </BlurView>
-        </Animated.View>
+            
+          </Animated.View>
+        </LinearGradient>
 
-        <Text style={styles.sectionTitle}>Reportes Recientes</Text>
-        
-        <View style={styles.recentReportsContainer}>
-          {[1, 2, 3].map((item) => (
-            <TouchableOpacity key={item} style={styles.reportCard}>
-              <Image
-                source={{ uri: `https://placeholder.svg?height=80&width=80&text=Reporte${item}` }}
-                style={styles.reportImage}
-              />
-              <View style={styles.reportInfo}>
-                <Text style={styles.reportTitle}>
-                  {item === 1 ? 'Bache en Calle Principal' : 
-                   item === 2 ? 'Alumbrado Dañado' : 'Acumulación de Basura'}
-                </Text>
-                <Text style={styles.reportLocation}>
-                  {item === 1 ? 'Colonia Centro' : 
-                   item === 2 ? 'Av. Constitución' : 'Parque Municipal'}
-                </Text>
-                <View style={styles.reportStatus}>
-                  <View style={[
-                    styles.statusIndicator, 
-                    { backgroundColor: 
-                      item === 1 ? '#8BC34A' : 
-                      item === 2 ? '#FF9800' : '#E91E63' 
-                    }
-                  ]} />
-                  <Text style={styles.statusText}>
-                    {item === 1 ? 'Resuelto' : 
-                     item === 2 ? 'En Proceso' : 'Pendiente'}
-                  </Text>
-                </View>
+        <View style={{ marginTop: 20 }}>
+          <Carousel
+            loop
+            width={width}
+            height={350}
+            autoPlay={true}
+            data={images}
+            scrollAnimationDuration={1000}
+            renderItem={({ item }) => (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  marginHorizontal: 16,
+                }}
+              >
+                <Image
+                  source={{ uri: item.uri }}
+                  style={{ width: "100%", height: "100%", borderRadius: 12 }}
+                  resizeMode="cover"
+                />
               </View>
-            </TouchableOpacity>
-          ))}
+            )}
+          />
+        </View>
+        {/* Categorías */}
+        <View style={styles.sectionContainer}>
+          <FlatList
+            data={CATEGORIES}
+            renderItem={renderCategoryItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesList}
+          />
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.reportButtonContainer}
-          onPress={() => router.push('/(tabs)/report')}
+          onPress={() => router.push("/(tabs)/report")}
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#E91E63', '#9C27B0']}
+            colors={["#E91E63", "#9C27B0"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.reportButton}
@@ -160,91 +156,136 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
   },
   scrollView: {
-    padding: 16,
+    paddingBottom: 20,
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 10,
+  heroSection: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  logo: {
-    width: 180,
-    height: 90,
+  heroContent: {
+    width: "100%",
   },
-  welcomeSection: {
-    marginBottom: 24,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Poppins-Regular',
-  },
-  cityName: {
+  heroTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#E91E63',
+    fontWeight: "bold",
+    color: "white",
     marginBottom: 8,
-    fontFamily: 'Poppins-Bold',
   },
-  appDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    fontFamily: 'Poppins-Regular',
+  heroSubtitle: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginBottom: 20,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 50,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+  },
+  sectionContainer: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  sectionLink: {
+    color: "#E91E63",
+    fontWeight: "500",
+  },
+  categoriesList: {
+    paddingVertical: 8,
+  },
+  categoryItem: {
+    alignItems: "center",
+    marginRight: 20,
+  },
+  categoryIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(233, 30, 99, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  categoryName: {
+    fontSize: 12,
+    color: "#333",
+    textAlign: "center",
   },
   statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+    paddingHorizontal: 16,
   },
   statCard: {
     borderRadius: 16,
     padding: 16,
-    alignItems: 'center',
-    width: '30%',
-    shadowColor: '#000',
+    alignItems: "center",
+    width: "30%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   statNumber: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginVertical: 4,
-    fontFamily: 'Poppins-Bold',
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
-    fontFamily: 'Poppins-Regular',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#333',
-    fontFamily: 'Poppins-SemiBold',
-  },
-  recentReportsContainer: {
-    marginBottom: 24,
+    color: "#666",
   },
   reportCard: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     marginBottom: 12,
-    flexDirection: 'row',
-    overflow: 'hidden',
-    shadowColor: '#000',
+    flexDirection: "row",
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -257,23 +298,21 @@ const styles = StyleSheet.create({
   reportInfo: {
     flex: 1,
     padding: 12,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   reportTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
-    fontFamily: 'Poppins-SemiBold',
   },
   reportLocation: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 8,
-    fontFamily: 'Poppins-Regular',
   },
   reportStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   statusIndicator: {
     width: 10,
@@ -283,14 +322,14 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    color: '#666',
-    fontFamily: 'Poppins-Regular',
+    color: "#666",
   },
   reportButtonContainer: {
     borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 20,
-    shadowColor: '#E91E63',
+    overflow: "hidden",
+    marginHorizontal: 16,
+    marginTop: 20,
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -300,16 +339,15 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   reportButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     height: 55,
     borderRadius: 12,
   },
   reportButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     marginLeft: 8,
-    fontFamily: 'Poppins-Bold',
   },
-});
+})

@@ -1,8 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  Image, 
+  TextInput, 
+  Alert,
+  Animated,
+  Easing
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 export default function AccountScreen() {
   const router = useRouter();
@@ -14,6 +27,32 @@ export default function AccountScreen() {
     email: 'juan.perez@ejemplo.com',
     phone: '312 123 4567',
   });
+  
+  // Animaciones
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const avatarScaleAnim = useRef(new Animated.Value(0.8)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(avatarScaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, []);
 
   const handleLogout = () => {
     // En V0, solo navegamos a la pantalla de login sin cerrar sesión real
@@ -31,130 +70,207 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={{ uri: 'https://placeholder.svg?height=100&width=100&text=JP' }}
-              style={styles.avatar}
-            />
-            {!isEditing && (
-              <TouchableOpacity style={styles.editAvatarButton}>
-                <Ionicons name="camera" size={18} color="white" />
+      <ScrollView 
+        contentContainerStyle={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View 
+          style={[
+            styles.profileHeader,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <BlurView intensity={70} tint="light" style={styles.profileHeaderBlur}>
+            <Animated.View 
+              style={[
+                styles.avatarContainer,
+                {
+                  transform: [{ scale: avatarScaleAnim }]
+                }
+              ]}
+            >
+              <LinearGradient
+                colors={['rgba(233, 30, 99, 0.7)', 'rgba(156, 39, 176, 0.7)']}
+                style={styles.avatarGradient}
+              >
+                <Image
+                  source={{ uri: 'https://placeholder.svg?height=100&width=100&text=JP' }}
+                  style={styles.avatar}
+                />
+              </LinearGradient>
+              {!isEditing && (
+                <TouchableOpacity style={styles.editAvatarButton}>
+                  <LinearGradient
+                    colors={['#E91E63', '#9C27B0']}
+                    style={styles.editAvatarGradient}
+                  >
+                    <Ionicons name="camera" size={18} color="white" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+            </Animated.View>
+            
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>{userData.name}</Text>
+              <View style={styles.profileRoleContainer}>
+                <LinearGradient
+                  colors={['#E91E63', '#9C27B0']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.profileRoleBadge}
+                >
+                  <Text style={styles.profileRoleText}>Ciudadano</Text>
+                </LinearGradient>
+              </View>
+            </View>
+            
+            {!isEditing ? (
+              <TouchableOpacity 
+                style={styles.editButton}
+                onPress={() => setIsEditing(true)}
+              >
+                <BlurView intensity={70} tint="light" style={styles.editButtonBlur}>
+                  <Ionicons name="create-outline" size={20} color="#E91E63" />
+                  <Text style={styles.editButtonText}>Editar</Text>
+                </BlurView>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={styles.saveButtonContainer}
+                onPress={handleSaveChanges}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#E91E63', '#9C27B0']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.saveButton}
+                >
+                  <Ionicons name="checkmark" size={20} color="white" />
+                  <Text style={styles.saveButtonText}>Guardar</Text>
+                </LinearGradient>
               </TouchableOpacity>
             )}
-          </View>
-          
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{userData.name}</Text>
-            <Text style={styles.profileRole}>Ciudadano</Text>
-          </View>
-          
-          {!isEditing ? (
-            <TouchableOpacity 
-              style={styles.editButton}
-              onPress={() => setIsEditing(true)}
-            >
-              <Ionicons name="create-outline" size={20} color="#E91E63" />
-              <Text style={styles.editButtonText}>Editar</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleSaveChanges}
-            >
-              <Ionicons name="checkmark" size={20} color="white" />
-              <Text style={styles.saveButtonText}>Guardar</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          </BlurView>
+        </Animated.View>
 
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Información Personal</Text>
-          
-          <View style={styles.infoItem}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="person" size={20} color="#E91E63" />
+        <Animated.View 
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <BlurView intensity={70} tint="light" style={styles.sectionBlur}>
+            <Text style={styles.sectionTitle}>Información Personal</Text>
+            
+            <View style={styles.infoItem}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="person" size={20} color="#E91E63" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Nombre Completo</Text>
+                {isEditing ? (
+                  <TextInput
+                    style={styles.infoInput}
+                    value={userData.name}
+                    onChangeText={(text) => setUserData({...userData, name: text})}
+                  />
+                ) : (
+                  <Text style={styles.infoValue}>{userData.name}</Text>
+                )}
+              </View>
             </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Nombre Completo</Text>
-              {isEditing ? (
-                <TextInput
-                  style={styles.infoInput}
-                  value={userData.name}
-                  onChangeText={(text) => setUserData({...userData, name: text})}
-                />
-              ) : (
-                <Text style={styles.infoValue}>{userData.name}</Text>
-              )}
+            
+            <View style={styles.infoItem}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="mail" size={20} color="#E91E63" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Correo Electrónico</Text>
+                {isEditing ? (
+                  <TextInput
+                    style={styles.infoInput}
+                    value={userData.email}
+                    onChangeText={(text) => setUserData({...userData, email: text})}
+                    keyboardType="email-address"
+                  />
+                ) : (
+                  <Text style={styles.infoValue}>{userData.email}</Text>
+                )}
+              </View>
             </View>
-          </View>
-          
-          <View style={styles.infoItem}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="mail" size={20} color="#E91E63" />
+            
+            <View style={styles.infoItem}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="call" size={20} color="#E91E63" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Número de Teléfono</Text>
+                {isEditing ? (
+                  <TextInput
+                    style={styles.infoInput}
+                    value={userData.phone}
+                    onChangeText={(text) => setUserData({...userData, phone: text})}
+                    keyboardType="phone-pad"
+                  />
+                ) : (
+                  <Text style={styles.infoValue}>{userData.phone}</Text>
+                )}
+              </View>
             </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Correo Electrónico</Text>
-              {isEditing ? (
-                <TextInput
-                  style={styles.infoInput}
-                  value={userData.email}
-                  onChangeText={(text) => setUserData({...userData, email: text})}
-                  keyboardType="email-address"
-                />
-              ) : (
-                <Text style={styles.infoValue}>{userData.email}</Text>
-              )}
-            </View>
-          </View>
-          
-          <View style={styles.infoItem}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="call" size={20} color="#E91E63" />
-            </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Número de Teléfono</Text>
-              {isEditing ? (
-                <TextInput
-                  style={styles.infoInput}
-                  value={userData.phone}
-                  onChangeText={(text) => setUserData({...userData, phone: text})}
-                  keyboardType="phone-pad"
-                />
-              ) : (
-                <Text style={styles.infoValue}>{userData.phone}</Text>
-              )}
-            </View>
-          </View>
-        </View>
+          </BlurView>
+        </Animated.View>
 
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Seguridad</Text>
-          
-          <TouchableOpacity 
-            style={styles.securityItem}
-            onPress={handleChangePassword}
-          >
-            <View style={styles.securityIcon}>
-              <Ionicons name="key" size={20} color="#E91E63" />
-            </View>
-            <View style={styles.securityContent}>
-              <Text style={styles.securityLabel}>Cambiar Contraseña</Text>
-              <Text style={styles.securityDescription}>
-                Actualiza tu contraseña para mayor seguridad
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
-          </TouchableOpacity>
-        </View>
+        <Animated.View 
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <BlurView intensity={70} tint="light" style={styles.sectionBlur}>
+            <Text style={styles.sectionTitle}>Seguridad</Text>
+            
+            <TouchableOpacity 
+              style={styles.securityItem}
+              onPress={handleChangePassword}
+            >
+              <View style={styles.securityIcon}>
+                <Ionicons name="key" size={20} color="#E91E63" />
+              </View>
+              <View style={styles.securityContent}>
+                <Text style={styles.securityLabel}>Cambiar Contraseña</Text>
+                <Text style={styles.securityDescription}>
+                  Actualiza tu contraseña para mayor seguridad
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </TouchableOpacity>
+          </BlurView>
+        </Animated.View>
 
         <TouchableOpacity 
-          style={styles.logoutButton}
+          style={styles.logoutButtonContainer}
           onPress={handleLogout}
+          activeOpacity={0.8}
         >
-          <Ionicons name="log-out" size={20} color="white" />
-          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          <LinearGradient
+            colors={['#E91E63', '#9C27B0']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.logoutButton}
+          >
+            <Ionicons name="log-out" size={20} color="white" />
+            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -164,42 +280,55 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f9fa',
   },
   scrollView: {
     padding: 16,
   },
   profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  profileHeaderBlur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
   },
   avatarContainer: {
     position: 'relative',
     marginRight: 16,
   },
+  avatarGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    padding: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 74,
+    height: 74,
+    borderRadius: 37,
     backgroundColor: '#f0f0f0',
   },
   editAvatarButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#E91E63',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  editAvatarGradient: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -209,51 +338,82 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 6,
+    fontFamily: 'Poppins-Bold',
   },
-  profileRole: {
-    fontSize: 14,
-    color: '#666',
+  profileRoleContainer: {
+    flexDirection: 'row',
+  },
+  profileRoleBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  profileRoleText: {
+    color: 'white',
+    fontSize: 12,
+    fontFamily: 'Poppins-Medium',
   },
   editButton: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  editButtonBlur: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   editButtonText: {
     color: '#E91E63',
     marginLeft: 4,
     fontWeight: '500',
+    fontFamily: 'Poppins-Medium',
+  },
+  saveButtonContainer: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#E91E63',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E91E63',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
   },
   saveButtonText: {
     color: 'white',
     marginLeft: 4,
     fontWeight: '500',
+    fontFamily: 'Poppins-Medium',
   },
   sectionContainer: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  sectionBlur: {
+    padding: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
     color: '#333',
+    fontFamily: 'Poppins-SemiBold',
   },
   infoItem: {
     flexDirection: 'row',
@@ -261,9 +421,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   infoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(233, 30, 99, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -276,25 +436,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 4,
+    fontFamily: 'Poppins-Regular',
   },
   infoValue: {
     fontSize: 16,
     color: '#333',
+    fontFamily: 'Poppins-Medium',
   },
   infoInput: {
     fontSize: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E91E63',
     paddingVertical: 4,
+    fontFamily: 'Poppins-Regular',
+    color: '#333',
   },
   securityItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   securityIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(233, 30, 99, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -306,24 +470,38 @@ const styles = StyleSheet.create({
   securityLabel: {
     fontSize: 16,
     color: '#333',
+    fontFamily: 'Poppins-Medium',
   },
   securityDescription: {
     fontSize: 14,
     color: '#666',
+    fontFamily: 'Poppins-Regular',
+  },
+  logoutButtonContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 30,
+    shadowColor: '#E91E63',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   logoutButton: {
-    backgroundColor: '#E91E63',
-    borderRadius: 8,
-    padding: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    height: 55,
+    borderRadius: 12,
   },
   logoutButtonText: {
     color: 'white',
     fontWeight: 'bold',
     marginLeft: 8,
     fontSize: 16,
+    fontFamily: 'Poppins-Bold',
   },
 });

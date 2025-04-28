@@ -1,45 +1,48 @@
 import { Tabs } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import { View, StyleSheet, Platform, Text, Image, TouchableOpacity } from "react-native"
+import { View, StyleSheet, Platform, Text, Image, TouchableOpacity, StatusBar } from "react-native"
 import { BlurView } from "expo-blur"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient"
+import { rgbaColor } from "react-native-reanimated/lib/typescript/Colors"
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets()
 
-  // Componente personalizado para el header de la aplicación
   const CustomHeader = ({ title }) => (
-    <LinearGradient
-      colors={["#E91E63", "#9C27B0"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={[styles.headerGradient, { paddingTop: insets.top + 10 }]} // +10 para darle algo de aire extra
-    >
-      <View style={styles.headerContainer}>
-        <View style={styles.headerLeft}>
-          <Image
-            source={{
-              uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png",
-            }}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
-          <Text style={styles.headerTitle}>{title}</Text>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <LinearGradient
+        colors={["#E91E63", "#9C27B0"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.headerGradient}
+      >
+        <View style={[styles.headerContainer, { marginTop: insets.top }]}>
+          <View style={styles.headerLeft}>
+            <Image
+              source={{
+                uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png",
+              }}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.headerTitle}>{title}</Text>
+          </View>
+
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.headerIconButton}>
+              <Ionicons name="notifications-outline" size={24} color="white" />
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>3</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
-  
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconButton}>
-            <Ionicons name="notifications-outline" size={24} color="white" />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>3</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </>
   )
-  
+
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -70,7 +73,7 @@ export default function TabsLayout() {
           position: "absolute",
           borderTopWidth: 0,
           elevation: 0,
-          backgroundColor: "transparent",
+          backgroundColor: "rgb(255,255,255)",
           height: 60 + (Platform.OS === "ios" ? insets.bottom : 0),
           paddingBottom: Platform.OS === "ios" ? insets.bottom : 0,
         },
@@ -129,7 +132,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   headerGradient: {
-    paddingTop: Platform.OS === "ios" ? 44 : 8,
     paddingBottom: 8,
   },
   headerContainer: {
@@ -137,7 +139,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    height: 40,
+    height: 60,
   },
   headerLeft: {
     flexDirection: "row",

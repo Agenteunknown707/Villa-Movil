@@ -1,19 +1,49 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Animated } from "react-native"
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Animated,
+  ActivityIndicator,
+  Alert,
+} from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Picker } from "@react-native-picker/picker"
 import { Ionicons } from "@expo/vector-icons"
-import { useRouter } from "expo-router"
+import { useRouter, useLocalSearchParams } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
 
 export default function ReportIncidentScreen() {
-  const [incidentType, setIncidentType] = useState("")
+  const params = useLocalSearchParams()
+  const [incidentType, setIncidentType] = useState(params.category ? String(params.category) : "")
   const [description, setDescription] = useState("")
   const [imageSelected, setImageSelected] = useState(false)
+  const [location, setLocation] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  // Mapeo de categorías a valores del picker
+  const categoryMapping = {
+    "1": "pothole",
+    "2": "lighting",
+    "3": "garbage",
+    "4": "water_leak",
+    "5": "signage",
+  }
+
+  // Establecer el tipo de incidencia si viene de la pantalla de inicio
+  useEffect(() => {
+    if (params.category && categoryMapping[params.category]) {
+      setIncidentType(categoryMapping[params.category])
+    }
+  }, [params.category])
 
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -35,8 +65,55 @@ export default function ReportIncidentScreen() {
   }, [])
 
   const handleSubmit = () => {
-    // En V0, solo navegamos a la pantalla de Mis Incidencias sin envío real
-    router.push("/(tabs)/incidents")
+    if (!incidentType || !description) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    // Simulamos un envío con un timeout
+    setTimeout(() => {
+      setIsSubmitting(false)
+      Alert.alert(
+        "Reporte enviado",
+        "Tu reporte ha sido enviado con éxito. Te notificaremos cuando haya actualizaciones.",
+        [
+          {
+            text: "Ver mis reportes",
+            onPress: () => router.push("/(tabs)/incidents"),
+          },
+          {
+            text: "Nuevo reporte",
+            onPress: () => {
+              setIncidentType("")
+              setDescription("")
+              setImageSelected(false)
+              setLocation("")
+            },
+            style: "cancel",
+          },
+        ],
+      )
+    }, 1500)
+  }
+
+  const getIncidentTypeLabel = (value) => {
+    switch (value) {
+      case "pothole":
+        return "Bache en calle"
+      case "lighting":
+        return "Alumbrado público"
+      case "garbage":
+        return "Acumulación de basura"
+      case "water_leak":
+        return "Fuga de agua"
+      case "signage":
+        return "Señalización dañada"
+      case "other":
+        return "Otro"
+      default:
+        return "Seleccione el tipo de incidencia"
+    }
   }
 
   return (
@@ -56,16 +133,22 @@ export default function ReportIncidentScreen() {
             },
           ]}
         >
-          <Text style={styles.formTitle}>Nuevo Reporte</Text>
-          <Text style={styles.formSubtitle}>Completa la información para reportar una incidencia</Text>
+          <View style={styles.formHeader}>
+            <Text style={styles.formTitle}>Nuevo Reporte</Text>
+            <Text style={styles.formSubtitle}>Completa la información para reportar una incidencia</Text>
+          </View>
 
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Tipo de Incidencia</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Ionicons name="alert-circle-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Text style={styles.sectionTitle}>Tipo de Incidencia</Text>
+            </View>
             <BlurView intensity={70} tint="light" style={styles.pickerContainer}>
               <Picker
                 selectedValue={incidentType}
                 onValueChange={(itemValue) => setIncidentType(itemValue)}
                 style={styles.picker}
+                dropdownIconColor="#E91E63"
               >
                 <Picker.Item label="Seleccione el tipo de incidencia" value="" />
                 <Picker.Item label="Bache en calle" value="pothole" />
@@ -79,7 +162,10 @@ export default function ReportIncidentScreen() {
           </View>
 
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Descripción</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Ionicons name="document-text-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Text style={styles.sectionTitle}>Descripción</Text>
+            </View>
             <BlurView intensity={70} tint="light" style={styles.descriptionContainer}>
               <TextInput
                 style={styles.descriptionInput}
@@ -91,16 +177,29 @@ export default function ReportIncidentScreen() {
                 placeholderTextColor="#999"
               />
             </BlurView>
+            <Text style={styles.characterCount}>{description.length}/500 caracteres</Text>
           </View>
 
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Fotografía</Text>
-            <TouchableOpacity style={styles.imageUploadContainer} onPress={() => setImageSelected(true)}>
+            <View style={styles.sectionTitleContainer}>
+              <Ionicons name="camera-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Text style={styles.sectionTitle}>Fotografía</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.imageUploadContainer}
+              onPress={() => setImageSelected(true)}
+              activeOpacity={0.8}
+            >
               {imageSelected ? (
-                <Image
-                  source={{ uri: "https://placeholder.svg?height=200&width=300&text=Imagen+Seleccionada" }}
-                  style={styles.selectedImage}
-                />
+                <View style={styles.selectedImageContainer}>
+                  <Image
+                    source={{ uri: "https://placeholder.svg?height=200&width=300&text=Imagen+Seleccionada" }}
+                    style={styles.selectedImage}
+                  />
+                  <TouchableOpacity style={styles.removeImageButton} onPress={() => setImageSelected(false)}>
+                    <Ionicons name="close-circle" size={24} color="#E91E63" />
+                  </TouchableOpacity>
+                </View>
               ) : (
                 <LinearGradient
                   colors={["rgba(233, 30, 99, 0.05)", "rgba(156, 39, 176, 0.05)"]}
@@ -110,14 +209,18 @@ export default function ReportIncidentScreen() {
                     <Ionicons name="camera" size={40} color="#E91E63" />
                   </View>
                   <Text style={styles.uploadText}>Toque para agregar una fotografía</Text>
+                  <Text style={styles.uploadSubtext}>Formatos: JPG, PNG (máx. 5MB)</Text>
                 </LinearGradient>
               )}
             </TouchableOpacity>
           </View>
 
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Ubicación</Text>
-            <TouchableOpacity style={styles.mapContainer}>
+            <View style={styles.sectionTitleContainer}>
+              <Ionicons name="location-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Text style={styles.sectionTitle}>Ubicación</Text>
+            </View>
+            <TouchableOpacity style={styles.mapContainer} activeOpacity={0.8}>
               <Image
                 source={{ uri: "https://placeholder.svg?height=200&width=350&text=Mapa" }}
                 style={styles.mapImage}
@@ -127,13 +230,19 @@ export default function ReportIncidentScreen() {
                   <Text style={styles.mapText}>Toque para seleccionar ubicación</Text>
                 </BlurView>
               </View>
+              {location ? (
+                <View style={styles.locationInfoContainer}>
+                  <Ionicons name="location" size={16} color="#E91E63" />
+                  <Text style={styles.locationText}>{location}</Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
             style={[styles.submitButtonContainer, !incidentType || !description ? styles.submitButtonDisabled : {}]}
             onPress={handleSubmit}
-            disabled={!incidentType || !description}
+            disabled={!incidentType || !description || isSubmitting}
             activeOpacity={0.8}
           >
             <LinearGradient
@@ -142,8 +251,14 @@ export default function ReportIncidentScreen() {
               end={{ x: 1, y: 0 }}
               style={styles.submitButton}
             >
-              <Text style={styles.submitButtonText}>Enviar Reporte</Text>
-              <Ionicons name="paper-plane" size={20} color="white" />
+              {isSubmitting ? (
+                <ActivityIndicator color="white" size="small" />
+              ) : (
+                <>
+                  <Text style={styles.submitButtonText}>Enviar Reporte</Text>
+                  <Ionicons name="paper-plane" size={20} color="white" />
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
@@ -170,6 +285,12 @@ const styles = StyleSheet.create({
   formContainer: {
     padding: 16,
   },
+  formHeader: {
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.05)",
+    paddingBottom: 16,
+  },
   formTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -179,26 +300,29 @@ const styles = StyleSheet.create({
   formSubtitle: {
     fontSize: 16,
     color: "#666",
-    marginBottom: 24,
+    lineHeight: 22,
   },
   formSection: {
-    marginBottom: 20,
+    marginBottom: 24,
+  },
+  sectionTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  sectionIcon: {
+    marginRight: 8,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
-    marginTop: 8,
     color: "#333",
   },
   pickerContainer: {
     borderRadius: 16,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: "rgba(233, 30, 99, 0.2)",
   },
   picker: {
     height: 50,
@@ -207,11 +331,8 @@ const styles = StyleSheet.create({
   descriptionContainer: {
     borderRadius: 16,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: "rgba(233, 30, 99, 0.2)",
   },
   descriptionInput: {
     padding: 16,
@@ -220,14 +341,17 @@ const styles = StyleSheet.create({
     minHeight: 120,
     color: "#333",
   },
+  characterCount: {
+    fontSize: 12,
+    color: "#999",
+    textAlign: "right",
+    marginTop: 4,
+  },
   imageUploadContainer: {
     borderRadius: 16,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: "rgba(233, 30, 99, 0.2)",
   },
   uploadPlaceholder: {
     height: 180,
@@ -246,21 +370,38 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     color: "#666",
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  uploadSubtext: {
+    color: "#999",
+    fontSize: 12,
+  },
+  selectedImageContainer: {
+    position: "relative",
   },
   selectedImage: {
     width: "100%",
     height: 200,
     borderRadius: 16,
   },
+  removeImageButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   mapContainer: {
     position: "relative",
     borderRadius: 16,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: "rgba(233, 30, 99, 0.2)",
   },
   mapImage: {
     width: "100%",
@@ -286,18 +427,49 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
+  locationInfoContainer: {
+    position: "absolute",
+    bottom: 12,
+    left: 12,
+    right: 12,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 8,
+    padding: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  locationText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: "#333",
+    flex: 1,
+  },
+  formSummary: {
+    backgroundColor: "rgba(233, 30, 99, 0.05)",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: "rgba(233, 30, 99, 0.1)",
+  },
+  summaryItem: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  summaryLabel: {
+    fontWeight: "bold",
+    color: "#666",
+    width: 90,
+  },
+  summaryValue: {
+    color: "#333",
+    flex: 1,
+  },
   submitButtonContainer: {
     borderRadius: 12,
     overflow: "hidden",
-    marginTop: 16,
-    shadowColor: "#E91E63",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 1,
+    marginBottom: 20,
   },
   submitButtonDisabled: {
     opacity: 0.7,

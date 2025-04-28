@@ -20,7 +20,6 @@ import Carousel from "react-native-reanimated-carousel"
 
 const { width } = Dimensions.get("window")
 
-// Datos de ejemplo para categorías
 const CATEGORIES = [
   { id: "1", name: "Baches", icon: "construct" },
   { id: "2", name: "Alumbrado", icon: "flashlight" },
@@ -32,6 +31,12 @@ const CATEGORIES = [
 export default function HomeScreen() {
   const router = useRouter()
   const [activeSlide, setActiveSlide] = useState(0)
+
+  const [weatherData, setWeatherData] = useState({
+    temperature: 27, // Temperatura simulada
+    description: "Soleado", // Descripción simulada
+    icon: "sunny", // Icono para el clima
+  })
 
   const images = [
     {
@@ -48,7 +53,6 @@ export default function HomeScreen() {
     },
   ]
 
-  // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
 
@@ -65,6 +69,8 @@ export default function HomeScreen() {
         useNativeDriver: true,
       }),
     ]).start()
+
+    // Aquí podrías integrar OpenWeather u otra API real de clima.
   }, [])
 
   const renderCategoryItem = ({ item }) => (
@@ -79,7 +85,8 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <ScrollView contentContainerStyle={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Hero Section con Gradiente */}
+        
+        {/* Hero Section */}
         <LinearGradient
           colors={["#E91E63", "#9C27B0"]}
           start={{ x: 0, y: 0 }}
@@ -97,6 +104,14 @@ export default function HomeScreen() {
           >
             <Text style={styles.heroTitle}>Aplicación de reportes ciudadanos</Text>
             <Text style={styles.heroSubtitle}>Ayúdanos a mejorar nuestra ciudad</Text>
+              {/* Sección del clima */}
+            <View style={styles.weatherContainer}>
+              <Ionicons name={weatherData.icon} size={36} color="#f39c12" />
+              <View style={{ marginLeft: 12 }}>
+                <Text style={styles.weatherTemp}>{weatherData.temperature}°C</Text>
+                <Text style={styles.weatherDesc}>{weatherData.description}</Text>
+              </View>
+            </View>
           </Animated.View>
         </LinearGradient>
 
@@ -120,12 +135,15 @@ export default function HomeScreen() {
             )}
           />
 
-          {/* Indicadores de paginación */}
+          {/* Paginación */}
           <View style={styles.paginationContainer}>
             {images.map((_, index) => (
               <View
                 key={index}
-                style={[styles.paginationDot, activeSlide === index ? styles.paginationDotActive : {}]}
+                style={[
+                  styles.paginationDot,
+                  activeSlide === index ? styles.paginationDotActive : {},
+                ]}
               />
             ))}
           </View>
@@ -143,7 +161,7 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Botón para reportar incidencias */}
+        {/* Botón Reportar */}
         <TouchableOpacity
           style={styles.reportButtonContainer}
           onPress={() => router.push("/(tabs)/report")}
@@ -175,7 +193,7 @@ const styles = StyleSheet.create({
   heroSection: {
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 30,
+    paddingBottom: 15,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
@@ -191,7 +209,7 @@ const styles = StyleSheet.create({
   heroSubtitle: {
     fontSize: 16,
     color: "rgba(255, 255, 255, 0.8)",
-    marginBottom: 20,
+    marginBottom: 0,
   },
   carouselWrapper: {
     marginTop: 20,
@@ -240,74 +258,66 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
   },
-  sectionContainer: {
-    marginTop: 20,
-    paddingHorizontal: 16,
-  },
-  sectionHeader: {
+  weatherContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    backgroundColor: "#ffffff",
+    marginHorizontal: 20,
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
-  sectionTitle: {
-    fontSize: 18,
+  weatherTemp: {
+    fontSize: 22,
     fontWeight: "bold",
     color: "#333",
   },
-  sectionLink: {
-    color: "#E91E63",
-    fontWeight: "500",
+  weatherDesc: {
+    fontSize: 16,
+    color: "#666",
+  },
+  sectionContainer: {
+    marginTop: 30,
   },
   categoriesList: {
-    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   categoryItem: {
     alignItems: "center",
     marginRight: 20,
   },
   categoryIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "rgba(233, 30, 99, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#f8bbd0",
+    padding: 16,
+    borderRadius: 50,
     marginBottom: 8,
-    shadowColor: "#E91E63",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   categoryName: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: "500",
     color: "#333",
-    textAlign: "center",
   },
   reportButtonContainer: {
-    borderRadius: 12,
-    overflow: "hidden",
+    marginTop: 30,
     marginHorizontal: 16,
-    marginTop: 20,
-    shadowColor: "#E91E63",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 40,
   },
   reportButton: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
-    height: 55,
-    borderRadius: 12,
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 30,
+
   },
   reportButtonText: {
     color: "white",
+    fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
   },

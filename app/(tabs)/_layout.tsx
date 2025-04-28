@@ -3,22 +3,15 @@ import { Ionicons } from "@expo/vector-icons"
 import { View, StyleSheet, Platform, Text, Image, TouchableOpacity, StatusBar } from "react-native"
 import { BlurView } from "expo-blur"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { LinearGradient } from "expo-linear-gradient"
-import { rgbaColor } from "react-native-reanimated/lib/typescript/Colors"
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets()
 
   const CustomHeader = ({ title }) => (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <LinearGradient
-        colors={["#E91E63", "#9C27B0"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.headerGradient}
-      >
-        <View style={[styles.headerContainer, { marginTop: insets.top }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <BlurView intensity={80} tint="light" style={[styles.headerContainer, { marginTop: insets.top }]}>
+        <View style={styles.headerInner}>
           <View style={styles.headerLeft}>
             <Image
               source={{
@@ -32,14 +25,14 @@ export default function TabsLayout() {
 
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.headerIconButton}>
-              <Ionicons name="notifications-outline" size={24} color="white" />
+              <Ionicons name="notifications-outline" size={26} color="#E91E63" />
               <View style={styles.notificationBadge}>
                 <Text style={styles.notificationBadgeText}>3</Text>
               </View>
             </TouchableOpacity>
           </View>
         </View>
-      </LinearGradient>
+      </BlurView>
     </>
   )
 
@@ -73,9 +66,10 @@ export default function TabsLayout() {
           position: "absolute",
           borderTopWidth: 0,
           elevation: 0,
-          backgroundColor: "rgb(255,255,255)",
+          backgroundColor: "rgba(255,255,255,0.9)",
           height: 60 + (Platform.OS === "ios" ? insets.bottom : 0),
           paddingBottom: Platform.OS === "ios" ? insets.bottom : 0,
+          backdropFilter: "blur(10px)", // Opcional en web
         },
         tabBarBackground: () => <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />,
         tabBarLabelStyle: {
@@ -86,73 +80,45 @@ export default function TabsLayout() {
         },
       })}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Inicio",
-          headerTitle: "Villa App",
-        }}
-      />
-      <Tabs.Screen
-        name="report"
-        options={{
-          title: "Reportar",
-          headerTitle: "Reportar",
-        }}
-      />
-      <Tabs.Screen
-        name="incidents"
-        options={{
-          title: "Mis Reportes",
-          headerTitle: "Mis Reportes",
-        }}
-      />
-      <Tabs.Screen
-        name="map"
-        options={{
-          title: "Mapa",
-          headerTitle: "Mapa",
-        }}
-      />
-      <Tabs.Screen
-        name="account"
-        options={{
-          title: "Cuenta",
-          headerTitle: "Mi Cuenta",
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "nicio", headerTitle: "Villa App" }} />
+      <Tabs.Screen name="report" options={{ title: "Reportar", headerTitle: "Reportar" }} />
+      <Tabs.Screen name="incidents" options={{ title: "Mis Reportes", headerTitle: "Mis Reportes" }} />
+      <Tabs.Screen name="map" options={{ title: "Mapa", headerTitle: "Mapa" }} />
+      <Tabs.Screen name="account" options={{ title: "Cuenta", headerTitle: "Mi Cuenta" }} />
     </Tabs>
   )
 }
 
 const styles = StyleSheet.create({
   activeIconContainer: {
-    backgroundColor: "rgba(233, 30, 99, 0.1)",
+    backgroundColor: "rgba(233, 30, 99, 0.15)",
     borderRadius: 12,
     padding: 8,
   },
-  headerGradient: {
-    paddingBottom: 8,
-  },
   headerContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    height: 70,
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.7)", // Backup en caso de error con BlurView
+  },
+  headerInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    height: 60,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
   headerLogo: {
-    width: 100,
-    height: 40,
-    marginRight: 8,
+    width: 120,
+    height: 60,
+    marginRight: 6,
   },
   headerTitle: {
-    color: "white",
-    fontSize: 18,
+    color: "#E91E63",
+    fontSize: 20,
     fontWeight: "bold",
   },
   headerRight: {

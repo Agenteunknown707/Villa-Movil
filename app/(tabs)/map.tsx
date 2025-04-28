@@ -152,7 +152,7 @@ export default function MapScreen() {
 
         <View style={styles.drawerHeader}>
           <Ionicons name="time-outline" size={20} color="#E91E63" style={styles.drawerHeaderIcon} />
-          <Text style={styles.drawerTitle}>Acá abajo las {filteredIncidents.length} incidencias recientes</Text>
+          <Text style={styles.drawerTitle}> {filteredIncidents.length} incidencias recientes</Text>
         </View>
 
         <ScrollView style={styles.incidentsListContainer} showsVerticalScrollIndicator={false} contentContainerStyle={styles.incidentsListContent}>

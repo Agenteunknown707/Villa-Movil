@@ -56,7 +56,7 @@ export default function AccountScreen() {
 
   const handleLogout = () => {
     // En V0, solo navegamos a la pantalla de login sin cerrar sesión real
-    router.replace('/');
+    router.replace('/login'); // o la pantalla inicial real
   };
 
   const handleSaveChanges = () => {
@@ -83,7 +83,7 @@ export default function AccountScreen() {
             }
           ]}
         >
-          <BlurView intensity={70} tint="light" style={styles.profileHeaderBlur}>
+          <BlurView intensity={120} tint="light" style={styles.profileHeaderBlur}>
             <Animated.View 
               style={[
                 styles.avatarContainer,
@@ -289,11 +289,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: '#f8f9fa',
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 4 },
+    //shadowOpacity: 0.1,
+    //shadowRadius: 8,
+    elevation: 10,
   },
   profileHeaderBlur: {
     flexDirection: 'row',
@@ -399,11 +400,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: '#f8f9fa',
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 4 },
+    //shadowOpacity: 0.1,
+    //shadowRadius: 8,
+    elevation: 10,
   },
   sectionBlur: {
     padding: 16,

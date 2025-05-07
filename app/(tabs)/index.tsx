@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import Carousel from "react-native-reanimated-carousel"
+import * as Location from "expo-location" // Importar la librería para obtener la ubicación
 
 const { width } = Dimensions.get("window")
 
@@ -33,10 +34,12 @@ export default function HomeScreen() {
   const [activeSlide, setActiveSlide] = useState(0)
 
   const [weatherData, setWeatherData] = useState({
-    temperature: 27, // Temperatura simulada
-    description: "Soleado", // Descripción simulada
-    icon: "sunny", // Icono para el clima
+    temperature: 0, // Inicia con 0
+    description: "", // Inicia vacío
+    icon: "", // Inicia vacío
   })
+
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false)
 
   const images = [
     {
@@ -57,6 +60,22 @@ export default function HomeScreen() {
   const slideAnim = useRef(new Animated.Value(30)).current
 
   useEffect(() => {
+    // Primero pedir permiso para acceder a la ubicación
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status === "granted") {
+        setLocationPermissionGranted(true)
+        
+        // Obtener las coordenadas del usuario
+        const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
+        const { latitude, longitude } = location.coords
+        
+        getWeatherData(latitude, longitude) // Pasar las coordenadas a la API
+      } else {
+        console.log("Permiso de ubicación denegado.")
+      }
+    })()
+  
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -69,9 +88,33 @@ export default function HomeScreen() {
         useNativeDriver: true,
       }),
     ]).start()
-
-    // Aquí podrías integrar OpenWeather u otra API real de clima.
   }, [])
+
+  const getWeatherData = async (latitude, longitude) => {
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=21be192e8239bc79149166622e90cd30&units=metric&lang=es`
+      );
+  
+      const data = await response.json();
+  
+      // Mostrar toda la respuesta para debug
+      console.log("Respuesta completa de la API:", data);
+  
+      if (data.main && data.weather && data.weather.length > 0) {
+        setWeatherData({
+          temperature: data.main.temp,
+          description: data.weather[0].description,
+          icon: `http://openweathermap.org/img/wn/${data.weather[0].icon}.png`,
+        });
+      } else {
+        console.error("No se pudo obtener el clima: respuesta incompleta");
+      }
+    } catch (error) {
+      console.error("Error al obtener los datos del clima:", error);
+    }
+  };
+  
 
   const renderCategoryItem = ({ item }) => (
     <TouchableOpacity style={styles.categoryItem} activeOpacity={0.7}>
@@ -106,7 +149,7 @@ export default function HomeScreen() {
             <Text style={styles.heroSubtitle}>Ayúdanos a mejorar nuestra ciudad</Text>
               {/* Sección del clima */}
             <View style={styles.weatherContainer}>
-              <Ionicons name={weatherData.icon} size={36} color="#f39c12" />
+              <Image source={{ uri: weatherData.icon }} style={{ width: 36, height: 36 }} />
               <View style={{ marginLeft: 12 }}>
                 <Text style={styles.weatherTemp}>{weatherData.temperature}°C</Text>
                 <Text style={styles.weatherDesc}>{weatherData.description}</Text>

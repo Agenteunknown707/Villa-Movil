@@ -6,6 +6,8 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
+import  IncidentItem  from "../../components/IncidentItem"
+
 
 // Datos de ejemplo para incidencias
 const INCIDENTS = [
@@ -237,15 +239,16 @@ export default function MyIncidentsScreen() {
       ) : (
         <FlatList
           data={filteredIncidents}
-          renderItem={renderIncidentItem}
           keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => <IncidentItem item={item} index={index} />}
           contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
         />
       )}
     </SafeAreaView>
   )
 }
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -260,11 +263,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderRadius: 16,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: "#f8f9fa",
+    //shadowColor: "#000",
+    //shadowOffset: { width: 0, height: 4 },
+    //shadowOpacity: 0.1,
+    //shadowRadius: 8,
+    elevation: 10,
   },
   filterButton: {
     flex: 1,

@@ -19,17 +19,21 @@ import { Ionicons } from "@expo/vector-icons"
 import { useRouter, useLocalSearchParams } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
+import * as ImagePicker from "expo-image-picker"
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps"
+import * as Location from "expo-location"
 
 export default function ReportIncidentScreen() {
   const params = useLocalSearchParams()
+  const [userLocation, setUserLocation] = useState(null)
+  const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null)
   const [incidentType, setIncidentType] = useState(params.category ? String(params.category) : "")
   const [description, setDescription] = useState("")
-  const [imageSelected, setImageSelected] = useState(false)
+  const [imageSelected, setImageSelected] = useState(null)
   const [location, setLocation] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  // Mapeo de categorías a valores del picker
   const categoryMapping = {
     "1": "pothole",
     "2": "lighting",
@@ -38,16 +42,14 @@ export default function ReportIncidentScreen() {
     "5": "signage",
   }
 
-  // Establecer el tipo de incidencia si viene de la pantalla de inicio
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(30)).current
+
   useEffect(() => {
     if (params.category && categoryMapping[params.category]) {
       setIncidentType(categoryMapping[params.category])
     }
   }, [params.category])
-
-  // Animaciones
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const slideAnim = useRef(new Animated.Value(30)).current
 
   useEffect(() => {
     Animated.parallel([
@@ -64,14 +66,60 @@ export default function ReportIncidentScreen() {
     ]).start()
   }, [])
 
-  const handleSubmit = () => {
-    if (!incidentType || !description) {
-      return
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (status !== "granted") {
+        Alert.alert("Permiso requerido", "Se necesita acceso a la galería para seleccionar una imagen.")
+      }
+    })()
+  }, [])
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== "granted") {
+        Alert.alert("Permiso denegado", "No se pudo acceder a tu ubicación actual.")
+        return
+      }
+  
+      const location = await Location.getCurrentPositionAsync({})
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      })
+    })()
+  }, [])
+
+  const handleMapPress = (event) => {
+    const { latitude, longitude } = event.nativeEvent.coordinate
+    setSelectedLocation({ latitude, longitude })
+    setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
+  }
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      })
+
+      if (!result.canceled && result.assets.length > 0) {
+        setImageSelected(result.assets[0].uri)
+      }
+    } catch (error) {
+      console.error("Error seleccionando imagen:", error)
     }
+  }
+
+  const handleSubmit = () => {
+    if (!incidentType || !description) return
 
     setIsSubmitting(true)
 
-    // Simulamos un envío con un timeout
     setTimeout(() => {
       setIsSubmitting(false)
       Alert.alert(
@@ -87,33 +135,14 @@ export default function ReportIncidentScreen() {
             onPress: () => {
               setIncidentType("")
               setDescription("")
-              setImageSelected(false)
+              setImageSelected(null)
               setLocation("")
             },
             style: "cancel",
           },
-        ],
+        ]
       )
     }, 1500)
-  }
-
-  const getIncidentTypeLabel = (value) => {
-    switch (value) {
-      case "pothole":
-        return "Bache en calle"
-      case "lighting":
-        return "Alumbrado público"
-      case "garbage":
-        return "Acumulación de basura"
-      case "water_leak":
-        return "Fuga de agua"
-      case "signage":
-        return "Señalización dañada"
-      case "other":
-        return "Otro"
-      default:
-        return "Seleccione el tipo de incidencia"
-    }
   }
 
   return (
@@ -124,20 +153,14 @@ export default function ReportIncidentScreen() {
           style={styles.gradientBackground}
         />
 
-        <Animated.View
-          style={[
-            styles.formContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
+        <Animated.View style={[styles.formContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          {/* Título */}
           <View style={styles.formHeader}>
             <Text style={styles.formTitle}>Nuevo Reporte</Text>
             <Text style={styles.formSubtitle}>Completa la información para reportar una incidencia</Text>
           </View>
 
+          {/* Selector de incidencia */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="alert-circle-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
@@ -161,6 +184,7 @@ export default function ReportIncidentScreen() {
             </BlurView>
           </View>
 
+          {/* Descripción */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="document-text-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
@@ -180,23 +204,17 @@ export default function ReportIncidentScreen() {
             <Text style={styles.characterCount}>{description.length}/500 caracteres</Text>
           </View>
 
+          {/* Imagen */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="camera-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Fotografía</Text>
             </View>
-            <TouchableOpacity
-              style={styles.imageUploadContainer}
-              onPress={() => setImageSelected(true)}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity style={styles.imageUploadContainer} onPress={pickImage} activeOpacity={0.8}>
               {imageSelected ? (
                 <View style={styles.selectedImageContainer}>
-                  <Image
-                    source={{ uri: "https://placeholder.svg?height=200&width=300&text=Imagen+Seleccionada" }}
-                    style={styles.selectedImage}
-                  />
-                  <TouchableOpacity style={styles.removeImageButton} onPress={() => setImageSelected(false)}>
+                  <Image source={{ uri: imageSelected }} style={styles.selectedImage} />
+                  <TouchableOpacity style={styles.removeImageButton} onPress={() => setImageSelected(null)}>
                     <Ionicons name="close-circle" size={24} color="#E91E63" />
                   </TouchableOpacity>
                 </View>
@@ -215,30 +233,41 @@ export default function ReportIncidentScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Ubicación */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="location-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Ubicación</Text>
             </View>
             <TouchableOpacity style={styles.mapContainer} activeOpacity={0.8}>
-              <Image
-                source={{ uri: "https://placeholder.svg?height=200&width=350&text=Mapa" }}
-                style={styles.mapImage}
-              />
+              {userLocation && (
+                <MapView
+                  style={styles.mapImage}
+                  provider={PROVIDER_GOOGLE}
+                  initialRegion={userLocation}
+                  onPress={handleMapPress}
+                >
+                  {selectedLocation && <Marker coordinate={selectedLocation} />}
+                </MapView>
+              )}
+               {/* Coordenadas seleccionadas debajo del mapa */}
+                {selectedLocation && (
+                  <View style={{ marginTop: 8, padding: 8, backgroundColor: "rgba(255,255,255,0.8)", borderRadius: 8 }}>
+                    <Text style={{ fontSize: 14, color: "#333" }}>
+                      Coordenadas seleccionadas: {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
+                    </Text>
+                  </View>
+                )}
               <View style={styles.mapOverlay}>
                 <BlurView intensity={50} tint="dark" style={styles.mapTextContainer}>
                   <Text style={styles.mapText}>Toque para seleccionar ubicación</Text>
                 </BlurView>
               </View>
-              {location ? (
-                <View style={styles.locationInfoContainer}>
-                  <Ionicons name="location" size={16} color="#E91E63" />
-                  <Text style={styles.locationText}>{location}</Text>
-                </View>
-              ) : null}
             </TouchableOpacity>
           </View>
+          {/* Puedes agregar lógica con expo-location o mapas aquí luego */}
 
+          {/* Botón de enviar */}
           <TouchableOpacity
             style={[styles.submitButtonContainer, !incidentType || !description ? styles.submitButtonDisabled : {}]}
             onPress={handleSubmit}
@@ -405,7 +434,7 @@ const styles = StyleSheet.create({
   },
   mapImage: {
     width: "100%",
-    height: 200,
+    height: 400,
     borderRadius: 16,
   },
   mapOverlay: {

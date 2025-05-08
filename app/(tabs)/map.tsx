@@ -103,8 +103,8 @@ export default function MapScreen() {
         <MapView
           style={StyleSheet.absoluteFillObject}
           initialRegion={{
-            latitude: 19.2433,
-            longitude: -103.7254,
+            latitude: 19.2676,
+            longitude: -103.7373,
             latitudeDelta: 0.02,
             longitudeDelta: 0.02,
           }}

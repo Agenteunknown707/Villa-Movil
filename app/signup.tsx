@@ -85,6 +85,7 @@ export default function SignupScreen() {
               style={styles.logo}
               resizeMode="contain"
             />
+            <Text style={styles.appTitle}>Villa App</Text>
           </Animated.View>
           
           <Animated.View 
@@ -214,6 +215,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  appTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#E91E63',
+    marginTop: 10,
+  },
   gradient: {
     position: 'absolute',
     left: 0,
@@ -234,14 +241,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: 40,
     height: 40,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   backButtonGradient: {
     width: 40,
@@ -256,7 +255,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 300,
-    height: 120,
+    height: 100,
   },
   formContainer: {
     width: '100%',

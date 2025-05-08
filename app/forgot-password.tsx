@@ -197,14 +197,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: 40,
     height: 40,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   backButtonGradient: {
     width: 40,

@@ -26,7 +26,7 @@ import * as Location from "expo-location"
 export default function ReportIncidentScreen() {
   const params = useLocalSearchParams()
   const [userLocation, setUserLocation] = useState(null)
-  const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [selectedLocation, setSelectedLocation] = useState(null)
   const [incidentType, setIncidentType] = useState(params.category ? String(params.category) : "")
   const [description, setDescription] = useState("")
   const [imageSelected, setImageSelected] = useState(null)
@@ -34,6 +34,10 @@ export default function ReportIncidentScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(30)).current
+
+  // Mapeo de categorías recibidas como parámetro
   const categoryMapping = {
     "1": "pothole",
     "2": "lighting",
@@ -42,15 +46,14 @@ export default function ReportIncidentScreen() {
     "5": "signage",
   }
 
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const slideAnim = useRef(new Animated.Value(30)).current
-
+  // Asignar tipo de incidencia si viene por parámetros
   useEffect(() => {
     if (params.category && categoryMapping[params.category]) {
       setIncidentType(categoryMapping[params.category])
     }
   }, [params.category])
 
+  // Animación de entrada
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -66,6 +69,7 @@ export default function ReportIncidentScreen() {
     ]).start()
   }, [])
 
+  // Solicitar permiso para galería
   useEffect(() => {
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -75,6 +79,7 @@ export default function ReportIncidentScreen() {
     })()
   }, [])
 
+  // Obtener ubicación del usuario al iniciar
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync()
@@ -82,7 +87,7 @@ export default function ReportIncidentScreen() {
         Alert.alert("Permiso denegado", "No se pudo acceder a tu ubicación actual.")
         return
       }
-  
+
       const location = await Location.getCurrentPositionAsync({})
       setUserLocation({
         latitude: location.coords.latitude,
@@ -93,17 +98,18 @@ export default function ReportIncidentScreen() {
     })()
   }, [])
 
+  // Al hacer tap en el mapa, guardar coordenadas seleccionadas
   const handleMapPress = (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate
     setSelectedLocation({ latitude, longitude })
     setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
   }
 
+  // Seleccionar imagen desde galería
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
         quality: 1,
       })
 
@@ -115,6 +121,7 @@ export default function ReportIncidentScreen() {
     }
   }
 
+  // Enviar el reporte simulado con feedback visual
   const handleSubmit = () => {
     if (!incidentType || !description) return
 
@@ -407,12 +414,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   selectedImageContainer: {
-    position: "relative",
+    position: 'relative',
+    width: 100,
+    height: 100,
   },
   selectedImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 16,
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    resizeMode: 'cover',
   },
   removeImageButton: {
     position: "absolute",

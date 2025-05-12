@@ -3,38 +3,55 @@ import { Ionicons } from "@expo/vector-icons"
 import { View, StyleSheet, Platform, Text, Image, TouchableOpacity, StatusBar } from "react-native"
 import { BlurView } from "expo-blur"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { useState } from "react"
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets()
 
-  const CustomHeader = ({ title }) => (
-    <>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <BlurView intensity={80} tint="light" style={[styles.headerContainer, { marginTop: insets.top }]}>
-        <View style={styles.headerInner}>
-          <View style={styles.headerLeft}>
-            <Image
-              source={{
-                uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png",
-              }}
-              style={styles.headerLogo}
-              resizeMode="contain"
-            />
-            <Text style={styles.headerTitle}>{title}</Text>
-          </View>
+  const CustomHeader = ({ title }) => {
+    const [showNotifications, setShowNotifications] = useState(false)
 
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.headerIconButton}>
-              <Ionicons name="notifications-outline" size={26} color="#E91E63" />
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>3</Text>
-              </View>
-            </TouchableOpacity>
+    const toggleNotifications = () => {
+      setShowNotifications(!showNotifications)
+    }
+
+    return (
+      <>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <BlurView intensity={80} tint="light" style={[styles.headerContainer, { marginTop: insets.top }]}>
+          <View style={styles.headerInner}>
+            <View style={styles.headerLeft}>
+              <Image
+                source={{
+                  uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png",
+                }}
+                style={styles.headerLogo}
+                resizeMode="contain"
+              />
+              <Text style={styles.headerTitle}>{title}</Text>
+            </View>
+
+            <View style={styles.headerRight}>
+              <TouchableOpacity style={styles.headerIconButton} onPress={toggleNotifications}>
+                <Ionicons name="notifications-outline" size={26} color="#E91E63" />
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>3</Text>
+                </View>
+              </TouchableOpacity>
+
+              {showNotifications && (
+                <View style={styles.notificationDropdown}>
+                  <Text style={styles.notificationItem}>🔔 Nueva actualización disponible</Text>
+                  <Text style={styles.notificationItem}>📢 Tu reporte fue recibido</Text>
+                  <Text style={styles.notificationItem}>✅ Tu reporte fue resuelto</Text>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
-      </BlurView>
-    </>
-  )
+        </BlurView>
+      </>
+    )
+  }
 
   return (
     <Tabs
@@ -69,7 +86,7 @@ export default function TabsLayout() {
           backgroundColor: "rgba(255,255,255,0.9)",
           height: 60 + (Platform.OS === "ios" ? insets.bottom : 0),
           paddingBottom: Platform.OS === "ios" ? insets.bottom : 0,
-          backdropFilter: "blur(10px)", // Opcional en web
+          backdropFilter: "blur(10px)",
         },
         tabBarBackground: () => <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />,
         tabBarLabelStyle: {
@@ -80,7 +97,7 @@ export default function TabsLayout() {
         },
       })}
     >
-      <Tabs.Screen name="index" options={{ title: "nicio", headerTitle: "Villa App" }} />
+      <Tabs.Screen name="index" options={{ title: "Inicio", headerTitle: "Villa App" }} />
       <Tabs.Screen name="report" options={{ title: "Reportar", headerTitle: "Reportar" }} />
       <Tabs.Screen name="incidents" options={{ title: "Mis Reportes", headerTitle: "Mis Reportes" }} />
       <Tabs.Screen name="map" options={{ title: "Mapa", headerTitle: "Mapa" }} />
@@ -100,7 +117,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     height: 70,
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.7)", // Backup en caso de error con BlurView
+    backgroundColor: "rgba(255,255,255,0.7)",
   },
   headerInner: {
     flexDirection: "row",
@@ -124,6 +141,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
+    position: "relative",
   },
   headerIconButton: {
     padding: 8,
@@ -146,5 +164,33 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 10,
     fontWeight: "bold",
+  },
+    notificationDropdown: {
+    position: "absolute",
+    top: 40,
+    right: -10,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1000,
+    width: 270,
+    borderWidth: 1,
+    borderColor: "#f0f0f0",
+  },
+  notificationItem: {
+    fontSize: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    flexDirection: "row",
+    alignItems: "center",
+    color: "#333",
   },
 })

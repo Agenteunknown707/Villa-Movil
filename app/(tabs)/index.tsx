@@ -44,15 +44,15 @@ export default function HomeScreen() {
   const images = [
     {
       id: 1,
-      uri: "https://scontent.fgdl9-1.fna.fbcdn.net/v/t39.30808-6/492003718_1106351618202533_2222435723951026490_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=833d8c&_nc_ohc=T6X_CWbos-gQ7kNvwHeefkj&_nc_oc=AdkdLatTGHdghbMclDwbe8M51CvLrdu8MUQMvdO80ODjG-We5pq-9wnM6UVBw2B4nPFRfuG0FTdRWZ2vHZY2280B&_nc_zt=23&_nc_ht=scontent.fgdl9-1.fna&_nc_gid=cIdqK3XxngcO7PDAqMGHiQ&oh=00_AfH-7fq7Qy4Rc9DFiSfTsLKdFoy_pJGyzMHSl7iXGCbvIQ&oe=6814B196",
+      source: require("../../assets/images/imagen1.jpg"), 
     },
     {
       id: 2,
-      uri: "https://scontent.fgdl9-1.fna.fbcdn.net/v/t39.30808-6/488656982_1091664526337909_2397491388117157064_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=833d8c&_nc_ohc=iA2XGupBH7AQ7kNvwFzuMAk&_nc_oc=AdmN2vnoPZBS6MIwyRGvrcEzy2LaqoY8V0kqcSIIhp0RBh5d5p2OWVjZ4uEeg-nLD1B4LwuFm4v0b7I1i6vYdJPe&_nc_zt=23&_nc_ht=scontent.fgdl9-1.fna&_nc_gid=UDyJCK-52N4EHr5YGOPNFg&oh=00_AfFc_D1Hv1I0tgZiE8ytwMbYkDfEbp4_YOC-4lKnoSfhag&oe=6814C324",
+      source: require("../../assets/images/imagen2.jpg"), 
     },
     {
       id: 3,
-      uri: "https://scontent.fgdl9-1.fna.fbcdn.net/v/t39.30808-6/492131183_1107246674779694_329804417320292654_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=833d8c&_nc_ohc=M8mGGlBQ1KQQ7kNvwGmsuKO&_nc_oc=Adm6oLDKrnoHrtfoXExcojd9Lr7KbN30p0Xhpmlz0-AOYNCNmi6S33HJXth1SOf0xDCmhv6U2FtWBrAJgFT-bbjN&_nc_zt=23&_nc_ht=scontent.fgdl9-1.fna&_nc_gid=VWdqEzlhymAnZMC-EPE4TA&oh=00_AfEPlFGDM3Exr6ivwWhl7-sa6RyegtW7oZMcE8VnvugJiQ&oe=6814CB34",
+      source: require("../../assets/images/imagen3.jpg"), 
     },
   ]
 
@@ -172,7 +172,7 @@ export default function HomeScreen() {
             }}
             renderItem={({ item }) => (
               <View style={styles.carouselItem}>
-                <Image source={{ uri: item.uri }} style={styles.carouselImage} resizeMode="cover" />
+                <Image source={ item.source } style={styles.carouselImage} resizeMode="cover" />
                 <LinearGradient colors={["transparent", "rgba(0,0,0,0.3)"]} style={styles.carouselGradient} />
               </View>
             )}

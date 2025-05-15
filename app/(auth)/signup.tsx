@@ -19,9 +19,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import axios from 'axios';
-
-// Configuración de la API
-const API_URL = 'http://192.168.1.2:4000/api/Ciudadanos'; // Usando la IP local
+import { buildApiUrl, API_CONFIG } from '../../config/api';
 
 export default function SignupScreen() {
   const [name, setName] = useState('');
@@ -88,14 +86,15 @@ export default function SignupScreen() {
       };
 
       console.log('Enviando datos:', ciudadanoData);
-      console.log('URL:', API_URL);
+      const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.CIUDADANOS);
+      console.log('URL:', apiUrl);
 
-      const response = await axios.post(`${API_URL}`, ciudadanoData, {
+      const response = await axios.post(apiUrl, ciudadanoData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        timeout: 10000 // 10 segundos de timeout
+        timeout: 10000
       });
 
       console.log('Respuesta:', response.data);

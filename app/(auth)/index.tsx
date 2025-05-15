@@ -14,19 +14,23 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Alert
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useRouter } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import { Ionicons } from "@expo/vector-icons"
 import { BlurView } from "expo-blur"
+import axios from "axios"
+import { buildApiUrl, API_CONFIG } from "../../config/api"
 
 const { width } = Dimensions.get("window")
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [secureTextEntry, setSecureTextEntry] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   // Animaciones
@@ -56,20 +60,89 @@ export default function LoginScreen() {
     ]).start()
   }, [])
 
-  const handleLogin = () => {
-    // NOTA: Aquí se implementaría la autenticación real con backend
-    // Por ahora, solo navegamos a la pantalla principal sin validación real
+  const handleLogin = async () => {
+    // Validaciones básicas
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor ingresa tu correo y contraseña');
+      return;
+    }
 
-    // Navegación directa a la pantalla principal
     try {
-      // Usamos navigate en lugar de replace para evitar problemas
-      router.navigate("/(tabs)")
-    } catch (error) {
-      console.error("Error de navegación:", error)
-      // Alternativa si la navegación falla
-      setTimeout(() => {
-        router.navigate("/(tabs)")
-      }, 100)
+      setIsLoading(true);
+      
+      // Primero obtenemos el usuario por email
+      const emailUrl = buildApiUrl(`${API_CONFIG.ENDPOINTS.CIUDADANOS}/email/${email}`);
+      console.log('Consultando usuario:', emailUrl);
+
+      const response = await axios.get(emailUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      });
+
+      if (response.data) {
+        const ciudadano = response.data;
+        console.log('Datos recibidos del servidor:', ciudadano);
+        console.log('Contraseña ingresada:', password);
+        console.log('Contraseña en la base de datos:', ciudadano.contraseña);
+        
+        // Verificamos la contraseña
+        if (ciudadano.contraseña === password) {
+          // Login exitoso
+          Alert.alert(
+            'Éxito',
+            'Inicio de sesión exitoso',
+            [
+              {
+                text: 'OK',
+                onPress: () => router.navigate("/(tabs)")
+              }
+            ]
+          );
+        } else {
+          Alert.alert('Error', 'Contraseña incorrecta');
+        }
+      }
+    } catch (error: unknown) {
+      console.error('Error completo:', error);
+      
+      if (axios.isAxiosError(error)) {
+        console.error('Detalles del error:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+          code: error.code
+        });
+        
+        if (error.response?.status === 404) {
+          Alert.alert('Error', 'No existe una cuenta con este correo electrónico');
+        } else if (error.code === 'ECONNABORTED') {
+          Alert.alert('Error', 'La conexión al servidor tardó demasiado. Por favor, intenta de nuevo.');
+        } else if (error.code === 'ERR_NETWORK') {
+          Alert.alert(
+            'Error de Conexión',
+            'No se pudo conectar con el servidor. Por favor, verifica que:\n\n' +
+            '1. El servidor esté corriendo\n' +
+            '2. Estés conectado a la misma red WiFi\n' +
+            '3. La IP del servidor sea correcta'
+          );
+        } else {
+          Alert.alert(
+            'Error',
+            error.response?.data?.error || 
+            error.response?.data?.message || 
+            error.message || 
+            'Error al iniciar sesión'
+          );
+        }
+      } else {
+        console.error('Error no relacionado con axios:', error);
+        Alert.alert('Error', 'Error al iniciar sesión');
+      }
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -109,14 +182,15 @@ export default function LoginScreen() {
               <Text style={styles.welcomeSubtext}>Inicia sesión para continuar</Text>
 
               <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={20} color="#E91E63" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Usuario o correo electrónico"
+                  placeholder="Correo electrónico"
                   placeholderTextColor="#999"
-                  value={username}
-                  onChangeText={setUsername}
+                  value={email}
+                  onChangeText={setEmail}
                   autoCapitalize="none"
+                  keyboardType="email-address"
                 />
               </View>
 
@@ -139,14 +213,21 @@ export default function LoginScreen() {
                 <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.loginButtonContainer} onPress={handleLogin} activeOpacity={0.8}>
+              <TouchableOpacity 
+                style={[styles.loginButtonContainer, isLoading && styles.disabledButton]} 
+                onPress={handleLogin} 
+                disabled={isLoading}
+                activeOpacity={0.8}
+              >
                 <LinearGradient
                   colors={["#E91E63", "#9C27B0"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.loginButton}
                 >
-                  <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                  <Text style={styles.loginButtonText}>
+                    {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
 
@@ -303,5 +384,8 @@ const styles = StyleSheet.create({
   signupLink: {
     color: "#E91E63",
     fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 })

@@ -10,22 +10,31 @@ import {
   ScrollView, 
   Image,
   Animated,
-  Easing
+  Easing,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import axios from 'axios';
+
+// Configuración de la API
+const API_URL = 'http://192.168.1.2:4000/api/Ciudadanos'; // Usando la IP local
 
 export default function SignupScreen() {
   const [name, setName] = useState('');
+  const [name2, setName2] = useState('');
+  const [ApellidoPaterno, setApellidoPaterno] = useState('');
+  const [ApellidoMaterno, setApellidoMaterno] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [secureConfirmTextEntry, setSecureConfirmTextEntry] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   
   // Animaciones
@@ -47,6 +56,100 @@ export default function SignupScreen() {
       })
     ]).start();
   }, []);
+
+  const handleSignup = async () => {
+    // Validaciones básicas
+    if (!name || !ApellidoPaterno || !email || !phone || !password || !confirmPassword) {
+      Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const ciudadanoData = {
+        primerNombre: name,
+        segundoNombre: name2 || null,
+        primerApellido: ApellidoPaterno,
+        segundoApellido: ApellidoMaterno || null,
+        correo: email,
+        numero: phone,
+        contraseña: password
+      };
+
+      console.log('Enviando datos:', ciudadanoData);
+      console.log('URL:', API_URL);
+
+      const response = await axios.post(`${API_URL}`, ciudadanoData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000 // 10 segundos de timeout
+      });
+
+      console.log('Respuesta:', response.data);
+
+      if (response.status === 201) {
+        Alert.alert(
+          'Éxito',
+          'Cuenta creada correctamente',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.push('/')
+            }
+          ]
+        );
+      }
+    } catch (error: unknown) {
+      console.error('Error completo:', error);
+      
+      if (axios.isAxiosError(error)) {
+        console.error('Detalles del error:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+          code: error.code
+        });
+        
+        if (error.code === 'ECONNABORTED') {
+          Alert.alert('Error', 'La conexión al servidor tardó demasiado. Por favor, intenta de nuevo.');
+        } else if (error.code === 'ERR_NETWORK') {
+          Alert.alert(
+            'Error de Conexión',
+            'No se pudo conectar con el servidor. Por favor, verifica que:\n\n' +
+            '1. El servidor esté corriendo\n' +
+            '2. Estés conectado a la misma red WiFi\n' +
+            '3. La IP del servidor sea correcta'
+          );
+        } else {
+          Alert.alert(
+            'Error',
+            error.response?.data?.error || 
+            error.response?.data?.message || 
+            error.message || 
+            'Error al crear la cuenta'
+          );
+        }
+      } else {
+        console.error('Error no relacionado con axios:', error);
+        Alert.alert('Error', 'Error al crear la cuenta');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -105,10 +208,43 @@ export default function SignupScreen() {
                 <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Nombre Completo"
+                  placeholder="Primer Nombre"
                   placeholderTextColor="#999"
                   value={name}
                   onChangeText={setName}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Segundo Nombre"
+                  placeholderTextColor="#999"
+                  value={name2}
+                  onChangeText={setName2}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Apellido Paterno"
+                  placeholderTextColor="#999"
+                  value={ApellidoPaterno}
+                  onChangeText={setApellidoPaterno}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Apellido Materno"
+                  placeholderTextColor="#999"
+                  value={ApellidoMaterno}
+                  onChangeText={setApellidoMaterno}
                 />
               </View>
               
@@ -182,8 +318,9 @@ export default function SignupScreen() {
               </View>
               
               <TouchableOpacity 
-                style={styles.signupButtonContainer} 
-                onPress={() => router.push('/')}
+                style={[styles.signupButtonContainer, isLoading && styles.disabledButton]} 
+                onPress={handleSignup}
+                disabled={isLoading}
                 activeOpacity={0.8}
               >
                 <LinearGradient
@@ -192,7 +329,9 @@ export default function SignupScreen() {
                   end={{ x: 1, y: 0 }}
                   style={styles.signupButton}
                 >
-                  <Text style={styles.signupButtonText}>Registrarse</Text>
+                  <Text style={styles.signupButtonText}>
+                    {isLoading ? 'Registrando...' : 'Registrarse'}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
               
@@ -359,5 +498,8 @@ const styles = StyleSheet.create({
     color: '#E91E63',
     fontWeight: 'bold',
     fontFamily: 'Poppins-SemiBold',
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });

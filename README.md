@@ -48,3 +48,15 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+## PARA HACER QUE JALE SI LO VAS A CLONAR DE GITHUB
+## Primero desde el bash:
+git init
+git clone https://github.com/Agenteunknown707/Villa-Movil.git
+cd Villa-Movil
+npm i
+
+## luego en una terminal:
+cd Villa-Movil 
+npx expo start

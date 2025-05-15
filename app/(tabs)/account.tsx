@@ -1,37 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  ScrollView, 
-  Image, 
-  TextInput, 
-  Alert,
-  Animated,
-  Easing
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Alert, Animated } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
+import { Ionicons } from "@expo/vector-icons"
+import { useRouter } from "expo-router"
+import { LinearGradient } from "expo-linear-gradient"
+import { BlurView } from "expo-blur"
 
 export default function AccountScreen() {
-  const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
-  
+  const router = useRouter()
+  const [isEditing, setIsEditing] = useState(false)
+
   // Datos simulados del usuario
   const [userData, setUserData] = useState({
-    name: 'Juan Pérez González',
-    email: 'juan.perez@ejemplo.com',
-    phone: '312 123 4567',
-  });
-  
+    name: "Juan Pérez González",
+    email: "juan.perez@ejemplo.com",
+    phone: "312 123 4567",
+  })
+
   // Animaciones
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const avatarScaleAnim = useRef(new Animated.Value(0.8)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(30)).current
+  const avatarScaleAnim = useRef(new Animated.Value(0.8)).current
 
   useEffect(() => {
     Animated.parallel([
@@ -50,74 +41,76 @@ export default function AccountScreen() {
         friction: 8,
         tension: 40,
         useNativeDriver: true,
-      })
-    ]).start();
-  }, []);
+      }),
+    ]).start()
+  }, [])
 
   const handleLogout = () => {
-    // En V0, solo navegamos a la pantalla de login sin cerrar sesión real
-    router.replace('/login'); // o la pantalla inicial real
-  };
+    // Mostrar alerta de confirmación
+    Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Sí, cerrar sesión",
+        onPress: () => {
+          router.replace("/(auth)")
+        },
+      },
+    ])
+  }
 
   const handleSaveChanges = () => {
-    setIsEditing(false);
-    Alert.alert('Éxito', 'Información actualizada correctamente');
-  };
+    setIsEditing(false)
+    Alert.alert("Éxito", "Información actualizada correctamente")
+  }
 
   const handleChangePassword = () => {
-    Alert.alert('Cambiar Contraseña', 'Esta funcionalidad estará disponible próximamente');
-  };
+    Alert.alert("Cambiar Contraseña", "Esta funcionalidad estará disponible próximamente")
+  }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView 
-        contentContainerStyle={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.View 
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <ScrollView contentContainerStyle={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <Animated.View
           style={[
             styles.profileHeader,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
           <BlurView intensity={120} tint="light" style={styles.profileHeaderBlur}>
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.avatarContainer,
                 {
-                  transform: [{ scale: avatarScaleAnim }]
-                }
+                  transform: [{ scale: avatarScaleAnim }],
+                },
               ]}
             >
               <LinearGradient
-                colors={['rgba(233, 30, 99, 0.7)', 'rgba(156, 39, 176, 0.7)']}
+                colors={["rgba(233, 30, 99, 0.7)", "rgba(156, 39, 176, 0.7)"]}
                 style={styles.avatarGradient}
               >
-                <Image
-                  source={{ uri: 'https://placeholder.svg?height=100&width=100&text=JP' }}
-                  style={styles.avatar}
-                />
+                <Image source={{ uri: "https://placeholder.svg?height=100&width=100&text=JP" }} style={styles.avatar} />
               </LinearGradient>
               {!isEditing && (
                 <TouchableOpacity style={styles.editAvatarButton}>
-                  <LinearGradient
-                    colors={['#E91E63', '#9C27B0']}
-                    style={styles.editAvatarGradient}
-                  >
+                  <LinearGradient colors={["#E91E63", "#9C27B0"]} style={styles.editAvatarGradient}>
                     <Ionicons name="camera" size={18} color="white" />
                   </LinearGradient>
                 </TouchableOpacity>
               )}
             </Animated.View>
-            
+
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{userData.name}</Text>
               <View style={styles.profileRoleContainer}>
                 <LinearGradient
-                  colors={['#E91E63', '#9C27B0']}
+                  colors={["#E91E63", "#9C27B0"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.profileRoleBadge}
@@ -126,25 +119,18 @@ export default function AccountScreen() {
                 </LinearGradient>
               </View>
             </View>
-            
+
             {!isEditing ? (
-              <TouchableOpacity 
-                style={styles.editButton}
-                onPress={() => setIsEditing(true)}
-              >
+              <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
                 <BlurView intensity={70} tint="light" style={styles.editButtonBlur}>
                   <Ionicons name="create-outline" size={20} color="#E91E63" />
                   <Text style={styles.editButtonText}>Editar</Text>
                 </BlurView>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity 
-                style={styles.saveButtonContainer}
-                onPress={handleSaveChanges}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={styles.saveButtonContainer} onPress={handleSaveChanges} activeOpacity={0.8}>
                 <LinearGradient
-                  colors={['#E91E63', '#9C27B0']}
+                  colors={["#E91E63", "#9C27B0"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.saveButton}
@@ -157,18 +143,18 @@ export default function AccountScreen() {
           </BlurView>
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={[
             styles.sectionContainer,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
           <BlurView intensity={70} tint="light" style={styles.sectionBlur}>
             <Text style={styles.sectionTitle}>Información Personal</Text>
-            
+
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
                 <Ionicons name="person" size={20} color="#E91E63" />
@@ -179,14 +165,14 @@ export default function AccountScreen() {
                   <TextInput
                     style={styles.infoInput}
                     value={userData.name}
-                    onChangeText={(text) => setUserData({...userData, name: text})}
+                    onChangeText={(text) => setUserData({ ...userData, name: text })}
                   />
                 ) : (
                   <Text style={styles.infoValue}>{userData.name}</Text>
                 )}
               </View>
             </View>
-            
+
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
                 <Ionicons name="mail" size={20} color="#E91E63" />
@@ -197,7 +183,7 @@ export default function AccountScreen() {
                   <TextInput
                     style={styles.infoInput}
                     value={userData.email}
-                    onChangeText={(text) => setUserData({...userData, email: text})}
+                    onChangeText={(text) => setUserData({ ...userData, email: text })}
                     keyboardType="email-address"
                   />
                 ) : (
@@ -205,7 +191,7 @@ export default function AccountScreen() {
                 )}
               </View>
             </View>
-            
+
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
                 <Ionicons name="call" size={20} color="#E91E63" />
@@ -216,7 +202,7 @@ export default function AccountScreen() {
                   <TextInput
                     style={styles.infoInput}
                     value={userData.phone}
-                    onChangeText={(text) => setUserData({...userData, phone: text})}
+                    onChangeText={(text) => setUserData({ ...userData, phone: text })}
                     keyboardType="phone-pad"
                   />
                 ) : (
@@ -227,43 +213,34 @@ export default function AccountScreen() {
           </BlurView>
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={[
             styles.sectionContainer,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
           <BlurView intensity={70} tint="light" style={styles.sectionBlur}>
             <Text style={styles.sectionTitle}>Seguridad</Text>
-            
-            <TouchableOpacity 
-              style={styles.securityItem}
-              onPress={handleChangePassword}
-            >
+
+            <TouchableOpacity style={styles.securityItem} onPress={handleChangePassword}>
               <View style={styles.securityIcon}>
                 <Ionicons name="key" size={20} color="#E91E63" />
               </View>
               <View style={styles.securityContent}>
                 <Text style={styles.securityLabel}>Cambiar Contraseña</Text>
-                <Text style={styles.securityDescription}>
-                  Actualiza tu contraseña para mayor seguridad
-                </Text>
+                <Text style={styles.securityDescription}>Actualiza tu contraseña para mayor seguridad</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
           </BlurView>
         </Animated.View>
 
-        <TouchableOpacity 
-          style={styles.logoutButtonContainer}
-          onPress={handleLogout}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.logoutButtonContainer} onPress={handleLogout} activeOpacity={0.8}>
           <LinearGradient
-            colors={['#E91E63', '#9C27B0']}
+            colors={["#E91E63", "#9C27B0"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.logoutButton}
@@ -274,35 +251,31 @@ export default function AccountScreen() {
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
   },
   scrollView: {
     padding: 16,
   },
   profileHeader: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 20,
-    backgroundColor: '#f8f9fa',
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 4 },
-    //shadowOpacity: 0.1,
-    //shadowRadius: 8,
+    backgroundColor: "#f8f9fa",
     elevation: 10,
   },
   profileHeaderBlur: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
   },
   avatarGradient: {
@@ -310,40 +283,39 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     padding: 3,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatar: {
     width: 74,
     height: 74,
     borderRadius: 37,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   editAvatarButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
     borderRadius: 15,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   editAvatarGradient: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 6,
-    fontFamily: 'Poppins-Bold',
   },
   profileRoleContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   profileRoleBadge: {
     paddingHorizontal: 10,
@@ -351,30 +323,28 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   profileRoleText: {
-    color: 'white',
+    color: "white",
     fontSize: 12,
-    fontFamily: 'Poppins-Medium',
   },
   editButton: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   editButtonBlur: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   editButtonText: {
-    color: '#E91E63',
+    color: "#E91E63",
     marginLeft: 4,
-    fontWeight: '500',
-    fontFamily: 'Poppins-Medium',
+    fontWeight: "500",
   },
   saveButtonContainer: {
     borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#E91E63',
+    overflow: "hidden",
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -384,27 +354,22 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
   },
   saveButtonText: {
-    color: 'white',
+    color: "white",
     marginLeft: 4,
-    fontWeight: '500',
-    fontFamily: 'Poppins-Medium',
+    fontWeight: "500",
   },
   sectionContainer: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 20,
-    backgroundColor: '#f8f9fa',
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 4 },
-    //shadowOpacity: 0.1,
-    //shadowRadius: 8,
+    backgroundColor: "#f8f9fa",
     elevation: 10,
   },
   sectionBlur: {
@@ -412,23 +377,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
-    color: '#333',
-    fontFamily: 'Poppins-SemiBold',
+    color: "#333",
   },
   infoItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 16,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   infoIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(233, 30, 99, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(233, 30, 99, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   infoContent: {
@@ -436,34 +400,31 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 4,
-    fontFamily: 'Poppins-Regular',
   },
   infoValue: {
     fontSize: 16,
-    color: '#333',
-    fontFamily: 'Poppins-Medium',
+    color: "#333",
   },
   infoInput: {
     fontSize: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E91E63',
+    borderBottomColor: "#E91E63",
     paddingVertical: 4,
-    fontFamily: 'Poppins-Regular',
-    color: '#333',
+    color: "#333",
   },
   securityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   securityIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(233, 30, 99, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(233, 30, 99, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   securityContent: {
@@ -471,19 +432,17 @@ const styles = StyleSheet.create({
   },
   securityLabel: {
     fontSize: 16,
-    color: '#333',
-    fontFamily: 'Poppins-Medium',
+    color: "#333",
   },
   securityDescription: {
     fontSize: 14,
-    color: '#666',
-    fontFamily: 'Poppins-Regular',
+    color: "#666",
   },
   logoutButtonContainer: {
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 30,
-    shadowColor: '#E91E63',
+    shadowColor: "#E91E63",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -493,17 +452,16 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   logoutButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     height: 55,
     borderRadius: 12,
   },
   logoutButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     marginLeft: 8,
     fontSize: 16,
-    fontFamily: 'Poppins-Bold',
   },
-});
+})

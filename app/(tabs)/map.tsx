@@ -109,22 +109,32 @@ export default function MapScreen() {
             longitudeDelta: 0.02,
           }}
         >
-          {filteredIncidents.map((incident) => (
-            <Marker
-              key={incident.id}
-              coordinate={{ latitude: incident.lat, longitude: incident.lng }}
-              title={incident.type}
-              description={`Estado: ${incident.status}`}
-              pinColor={
-                incident.status === "resolved"
-                  ? "green"
-                  : incident.status === "in_progress"
-                  ? "orange"
-                  : "red"
-              }
-            />
-          ))}
-        </MapView>
+          
+          {filteredIncidents.map((incident) => {
+            try {
+              console.log("[Marker]", incident.id, incident.status);
+              return (
+                <Marker
+                  key={incident.id}
+                  coordinate={{ latitude: incident.lat, longitude: incident.lng }}
+                  title={incident.type}
+                  description={`Estado: ${incident.status}`}
+                  pinColor={
+                    incident.status === "resolved"
+                      ? "green"
+                      : incident.status === "in_progress"
+                      ? "orange"
+                      : "red"
+                  }
+                />
+              )
+            } catch (e) {
+              console.error("Error renderizando Marker", incident, e);
+              return null;
+            }
+          })}
+        </MapView> 
+
 
         {/* Botones flotantes */}
         <TouchableOpacity style={styles.mapControlButton}>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import {
   View,
   Text,
@@ -20,16 +20,40 @@ import { useRouter, useLocalSearchParams } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
 import * as ImagePicker from "expo-image-picker"
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps"
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps"
 import * as Location from "expo-location"
+import { buildApiUrl, API_CONFIG } from "../../config/api"
+import * as FileSystem from 'expo-file-system'
+
+// Definir interfaces para los tipos
+interface LocationState {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+}
+
+interface SelectedLocation {
+  latitude: number;
+  longitude: number;
+}
+
+interface MapPressEvent {
+  nativeEvent: {
+    coordinate: {
+      latitude: number;
+      longitude: number;
+    }
+  }
+}
 
 export default function ReportIncidentScreen() {
   const params = useLocalSearchParams()
-  const [userLocation, setUserLocation] = useState(null)
-  const [selectedLocation, setSelectedLocation] = useState(null)
+  const [userLocation, setUserLocation] = useState<LocationState | null>(null)
+  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null)
   const [incidentType, setIncidentType] = useState(params.category ? String(params.category) : "")
   const [description, setDescription] = useState("")
-  const [imageSelected, setImageSelected] = useState(null)
+  const [imageSelected, setImageSelected] = useState<string | null>(null)
   const [location, setLocation] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
@@ -38,7 +62,7 @@ export default function ReportIncidentScreen() {
   const slideAnim = useRef(new Animated.Value(30)).current
 
   // Mapeo de categorías recibidas como parámetro
-  const categoryMapping = {
+  const categoryMapping: Record<string, string> = {
     "1": "pothole",
     "2": "lighting",
     "3": "garbage",
@@ -48,8 +72,9 @@ export default function ReportIncidentScreen() {
 
   // Asignar tipo de incidencia si viene por parámetros
   useEffect(() => {
-    if (params.category && categoryMapping[params.category]) {
-      setIncidentType(categoryMapping[params.category])
+    const category = String(params.category)
+    if (category && categoryMapping[category]) {
+      setIncidentType(categoryMapping[category])
     }
   }, [params.category])
 
@@ -99,7 +124,7 @@ export default function ReportIncidentScreen() {
   }, [])
 
   // Al hacer tap en el mapa, guardar coordenadas seleccionadas
-  const handleMapPress = (event) => {
+  const handleMapPress = (event: MapPressEvent) => {
     const { latitude, longitude } = event.nativeEvent.coordinate
     setSelectedLocation({ latitude, longitude })
     setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
@@ -121,14 +146,113 @@ export default function ReportIncidentScreen() {
     }
   }
 
-  // Enviar el reporte simulado con feedback visual
-  const handleSubmit = () => {
-    if (!incidentType || !description) return
+  // Función para subir la imagen
+  const uploadImage = async (uri: string): Promise<string> => {
+    try {
+      const formData = new FormData()
+      const filename = uri.split('/').pop()
+      const match = /\.(\w+)$/.exec(filename || '')
+      const type = match ? `image/${match[1]}` : 'image'
+
+      // Crear el objeto de archivo
+      const file = {
+        uri,
+        type,
+        name: filename,
+      }
+
+      formData.append('image', file as any)
+
+      const uploadUrl = buildApiUrl(API_CONFIG.ENDPOINTS.UPLOAD_IMAGE)
+      console.log('Uploading to URL:', uploadUrl) // Para debugging
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+        },
+      })
+
+      // Log para debugging
+      console.log('Response status:', uploadResponse.status)
+      const responseText = await uploadResponse.text()
+      console.log('Response text:', responseText)
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Error al subir la imagen: ${uploadResponse.status} ${uploadResponse.statusText}`)
+      }
+
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (e) {
+        console.error('Error parsing response:', e)
+        throw new Error('Respuesta del servidor inválida')
+      }
+
+      if (!data.imageUrl) {
+        throw new Error('No se recibió la URL de la imagen')
+      }
+
+      return data.imageUrl
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      throw new Error(error instanceof Error ? error.message : 'Error al subir la imagen')
+    }
+  }
+
+  // Función para crear el reporte
+  const createReport = async (imageUrl: string) => {
+    try {
+      const reportData = {
+        tipo: incidentType,
+        descripcion: description,
+        ubicacion: location,
+        latitud: selectedLocation?.latitude || 0,
+        longitud: selectedLocation?.longitude || 0,
+        imagenUrl: imageUrl,
+        estado: 'pendiente',
+        idCiudadano: 1, // TODO: Obtener el ID del ciudadano del contexto de autenticación
+      }
+
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.REPORTES), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reportData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al crear el reporte')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error creating report:', error)
+      throw error
+    }
+  }
+
+  // Modificar la función handleSubmit
+  const handleSubmit = async () => {
+    if (!incidentType || !description || !selectedLocation || !imageSelected) {
+      Alert.alert('Error', 'Por favor complete todos los campos requeridos')
+      return
+    }
 
     setIsSubmitting(true)
 
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      // 1. Subir la imagen
+      const imageUrl = await uploadImage(imageSelected)
+
+      // 2. Crear el reporte
+      await createReport(imageUrl)
+
+      // 3. Mostrar mensaje de éxito
       Alert.alert(
         "Reporte enviado",
         "Tu reporte ha sido enviado con éxito. Te notificaremos cuando haya actualizaciones.",
@@ -144,12 +268,20 @@ export default function ReportIncidentScreen() {
               setDescription("")
               setImageSelected(null)
               setLocation("")
+              setSelectedLocation(null)
             },
             style: "cancel",
           },
         ]
       )
-    }, 1500)
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "Hubo un error al enviar el reporte. Por favor, intente nuevamente."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

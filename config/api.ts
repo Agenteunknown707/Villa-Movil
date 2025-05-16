@@ -9,7 +9,9 @@ export const API_CONFIG = {
         INCIDENCIAS: '/Incidencias',
         DEPENDENCIAS: '/Dependencias',
         CATEGORIAS: '/Categorias',
-        NOTIFICACIONES: '/Notificaciones'
+        NOTIFICACIONES: '/Notificaciones',
+        REPORTES: '/reportes',
+        UPLOAD_IMAGE: '/upload'
     }
 };
 

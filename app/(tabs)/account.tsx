@@ -1,22 +1,44 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Alert, Animated } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Alert, Animated, ActivityIndicator } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
+import axios from "axios"
+import { API_CONFIG, buildApiUrl } from "../../config/api"
+
+interface Ciudadano {
+  idCiudadano: number;
+  primerNombre: string;
+  segundoNombre: string | null;
+  primerApellido: string;
+  segundoApellido: string | null;
+  correo: string;
+  numero: string;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+}
 
 export default function AccountScreen() {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Datos simulados del usuario
-  const [userData, setUserData] = useState({
-    name: "Juan Pérez González",
-    email: "juan.perez@ejemplo.com",
-    phone: "312 123 4567",
+  // Estado para los datos del usuario
+  const [userData, setUserData] = useState<Ciudadano>({
+    idCiudadano: 0,
+    primerNombre: "",
+    segundoNombre: "",
+    primerApellido: "",
+    segundoApellido: "",
+    correo: "",
+    numero: "",
+    fechaCreacion: "",
+    fechaActualizacion: ""
   })
 
   // Animaciones
@@ -45,8 +67,28 @@ export default function AccountScreen() {
     ]).start()
   }, [])
 
+  // Función para obtener los datos del usuario
+  const fetchUserData = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      // TODO: Reemplazar el ID hardcodeado con el ID del usuario actual
+      const response = await axios.get(buildApiUrl(`${API_CONFIG.ENDPOINTS.CIUDADANOS}/4`))
+      setUserData(response.data)
+    } catch (err) {
+      console.error('Error fetching user data:', err)
+      setError('No se pudieron cargar los datos del usuario')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Cargar datos del usuario al montar el componente
+  useEffect(() => {
+    fetchUserData()
+  }, [])
+
   const handleLogout = () => {
-    // Mostrar alerta de confirmación
     Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
       {
         text: "Cancelar",
@@ -61,13 +103,55 @@ export default function AccountScreen() {
     ])
   }
 
-  const handleSaveChanges = () => {
-    setIsEditing(false)
-    Alert.alert("Éxito", "Información actualizada correctamente")
+  const handleSaveChanges = async () => {
+    try {
+      // TODO: Implementar la actualización de datos
+      setIsEditing(false)
+      Alert.alert("Éxito", "Información actualizada correctamente")
+    } catch (error) {
+      Alert.alert("Error", "No se pudo actualizar la información")
+    }
   }
 
   const handleChangePassword = () => {
     Alert.alert("Cambiar Contraseña", "Esta funcionalidad estará disponible próximamente")
+  }
+
+  // Función para obtener el nombre completo
+  const getFullName = () => {
+    const nombres = [userData.primerNombre, userData.segundoNombre].filter(Boolean).join(" ")
+    const apellidos = [userData.primerApellido, userData.segundoApellido].filter(Boolean).join(" ")
+    return `${nombres} ${apellidos}`
+  }
+
+  // Función para obtener las iniciales
+  const getInitials = () => {
+    return `${userData.primerNombre[0]}${userData.primerApellido[0]}`
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E91E63" />
+          <Text style={styles.loadingText}>Cargando datos...</Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchUserData}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    )
   }
 
   return (
@@ -95,7 +179,7 @@ export default function AccountScreen() {
                 colors={["rgba(233, 30, 99, 0.7)", "rgba(156, 39, 176, 0.7)"]}
                 style={styles.avatarGradient}
               >
-                <Image source={{ uri: "https://placeholder.svg?height=100&width=100&text=JP" }} style={styles.avatar} />
+                <Text style={styles.avatarText}>{getInitials()}</Text>
               </LinearGradient>
               {!isEditing && (
                 <TouchableOpacity style={styles.editAvatarButton}>
@@ -107,7 +191,7 @@ export default function AccountScreen() {
             </Animated.View>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{userData.name}</Text>
+              <Text style={styles.profileName}>{getFullName()}</Text>
               <View style={styles.profileRoleContainer}>
                 <LinearGradient
                   colors={["#E91E63", "#9C27B0"]}
@@ -164,11 +248,20 @@ export default function AccountScreen() {
                 {isEditing ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.name}
-                    onChangeText={(text) => setUserData({ ...userData, name: text })}
+                    value={getFullName()}
+                    onChangeText={(text) => {
+                      const [primerNombre, segundoNombre, primerApellido, segundoApellido] = text.split(" ")
+                      setUserData({
+                        ...userData,
+                        primerNombre: primerNombre || "",
+                        segundoNombre: segundoNombre || "",
+                        primerApellido: primerApellido || "",
+                        segundoApellido: segundoApellido || ""
+                      })
+                    }}
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{userData.name}</Text>
+                  <Text style={styles.infoValue}>{getFullName()}</Text>
                 )}
               </View>
             </View>
@@ -182,12 +275,12 @@ export default function AccountScreen() {
                 {isEditing ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.email}
-                    onChangeText={(text) => setUserData({ ...userData, email: text })}
+                    value={userData.correo}
+                    onChangeText={(text) => setUserData({ ...userData, correo: text })}
                     keyboardType="email-address"
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{userData.email}</Text>
+                  <Text style={styles.infoValue}>{userData.correo}</Text>
                 )}
               </View>
             </View>
@@ -201,12 +294,12 @@ export default function AccountScreen() {
                 {isEditing ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.phone}
-                    onChangeText={(text) => setUserData({ ...userData, phone: text })}
+                    value={userData.numero}
+                    onChangeText={(text) => setUserData({ ...userData, numero: text })}
                     keyboardType="phone-pad"
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{userData.phone}</Text>
+                  <Text style={styles.infoValue}>{userData.numero}</Text>
                 )}
               </View>
             </View>
@@ -286,11 +379,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatar: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    backgroundColor: "#f0f0f0",
+  avatarText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "white",
   },
   editAvatarButton: {
     position: "absolute",
@@ -463,5 +555,39 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 8,
     fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#E91E63",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "#E91E63",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
 })

@@ -1,60 +1,157 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Animated, Easing } from "react-native"
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Animated, Easing, ColorValue, ActivityIndicator } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
-import  IncidentItem  from "../../components/IncidentItem"
+import IncidentItem from "../../components/IncidentItem"
+import axios from "axios"
+import { API_CONFIG, buildApiUrl } from "../../config/api"
 
+interface Ciudadano {
+  nombre: string;
+  apellido: string;
+  email: string;
+}
 
-// Datos de ejemplo para incidencias
-const INCIDENTS = [
-  {
-    id: "1",
-    type: "Bache en calle",
-    location: "Calle Constitución #123, Centro",
-    date: "15/04/2023",
-    status: "resolved",
-    description: "Bache de aproximadamente 50cm de diámetro que dificulta el tránsito vehicular.",
-  },
-  {
-    id: "2",
-    type: "Alumbrado público",
-    location: "Av. Benito Juárez #456, La Villa",
-    date: "10/04/2023",
-    status: "in_progress",
-    description: "Lámpara de alumbrado público sin funcionar desde hace una semana.",
-  },
-  {
-    id: "3",
-    type: "Acumulación de basura",
-    location: "Parque Municipal, Col. Jardines",
-    date: "05/04/2023",
-    status: "pending",
-    description: "Acumulación de basura en la esquina norte del parque municipal.",
-  },
-  {
-    id: "4",
-    type: "Fuga de agua",
-    location: "Calle Hidalgo #789, Centro",
-    date: "01/04/2023",
-    status: "resolved",
-    description: "Fuga de agua en la tubería principal que causa encharcamiento en la vía pública.",
-  },
-  {
-    id: "5",
-    type: "Señalización dañada",
-    location: "Cruce Av. México y Calle Colima",
-    date: "28/03/2023",
-    status: "pending",
-    description: "Señal de alto doblada y con grafiti que dificulta su visibilidad.",
-  },
-]
+interface IncidentItem {
+  idIncidencia: number;
+  categoria: string;
+  descripcionCiudadano?: string;
+  descripcionDependencia?: string;
+  descripcionAyuntamiento?: string;
+  ubicacion?: string;
+  calle?: string;
+  colonia?: string;
+  codigoPostal?: string;
+  ciudad?: string;
+  estadoUbicacion?: string;
+  latitud: number;
+  longitud: number;
+  imagenUrl: string;
+  estadoReporte: 'pendiente' | 'en_proceso' | 'resuelto' | 'rechazado';
+  prioridad: number;
+  idCiudadano: number;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+  ciudadano: Ciudadano;
+}
+
+const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: number }) => {
+  const itemFadeAnim = useRef(new Animated.Value(0)).current
+  const itemSlideAnim = useRef(new Animated.Value(50)).current
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(itemFadeAnim, {
+        toValue: 1,
+        duration: 500,
+        delay: index * 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(itemSlideAnim, {
+        toValue: 0,
+        duration: 500,
+        delay: index * 100,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [index])
+
+  let statusColor, statusText, statusGradient
+
+  switch (item.estadoReporte) {
+    case "resuelto":
+      statusColor = "#8BC34A"
+      statusText = "Resuelto"
+      statusGradient = ["#8BC34A", "#4CAF50"]
+      break
+    case "en_proceso":
+      statusColor = "#FF9800"
+      statusText = "En Proceso"
+      statusGradient = ["#FF9800", "#FF5722"]
+      break
+    case "pendiente":
+      statusColor = "#E91E63"
+      statusText = "Pendiente"
+      statusGradient = ["#E91E63", "#9C27B0"]
+      break
+    case "rechazado":
+      statusColor = "#999"
+      statusText = "Rechazado"
+      statusGradient = ["#999", "#666"]
+      break
+    default:
+      statusColor = "#999"
+      statusText = "Desconocido"
+      statusGradient = ["#999", "#666"]
+  }
+
+  return (
+    <Animated.View
+      style={{
+        opacity: itemFadeAnim,
+        transform: [{ translateY: itemSlideAnim }],
+      }}
+    >
+      <TouchableOpacity style={styles.incidentCard} activeOpacity={0.9}>
+        <View style={styles.incidentHeader}>
+          <Text style={styles.incidentType}>{item.categoria}</Text>
+          <LinearGradient
+            colors={statusGradient as [ColorValue, ColorValue, ...ColorValue[]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.statusBadge}
+          >
+            <Text style={styles.statusBadgeText}>{statusText}</Text>
+          </LinearGradient>
+        </View>
+
+        <View style={styles.incidentContent}>
+          <View style={styles.incidentImageContainer}>
+            <Image
+              source={{ uri: item.imagenUrl }}
+              style={styles.incidentImage}
+            />
+          </View>
+          <View style={styles.incidentDetails}>
+            <View style={styles.locationContainer}>
+              <Ionicons name="location" size={16} color="#666" />
+              <Text style={styles.incidentLocation}>
+                {[item.calle, item.colonia, item.ciudad].filter(Boolean).join(", ")}
+              </Text>
+            </View>
+            <View style={styles.dateContainer}>
+              <Ionicons name="calendar" size={16} color="#666" />
+              <Text style={styles.incidentDate}>
+                Reportado: {new Date(item.fechaCreacion).toLocaleDateString()}
+              </Text>
+            </View>
+            <Text style={styles.incidentDescription} numberOfLines={2}>
+              {item.descripcionCiudadano}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.incidentFooter}>
+          <TouchableOpacity style={styles.detailsButton}>
+            <Text style={styles.detailsButtonText}>Ver Detalles</Text>
+            <Ionicons name="chevron-forward" size={16} color="#E91E63" />
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  )
+}
 
 export default function MyIncidentsScreen() {
   const [selectedFilter, setSelectedFilter] = useState("all")
+  const [incidents, setIncidents] = useState<IncidentItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -75,108 +172,32 @@ export default function MyIncidentsScreen() {
     ]).start()
   }, [])
 
+  // Función para obtener incidencias
+  const fetchIncidents = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.INCIDENCIAS))
+      setIncidents(response.data)
+    } catch (err) {
+      console.error('Error fetching incidents:', err)
+      setError('No se pudieron cargar las incidencias')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Cargar incidencias al montar el componente
+  useEffect(() => {
+    fetchIncidents()
+  }, [])
+
   // Filtrar incidencias según el filtro seleccionado
   const filteredIncidents =
-    selectedFilter === "all" ? INCIDENTS : INCIDENTS.filter((incident) => incident.status === selectedFilter)
+    selectedFilter === "all" ? incidents : incidents.filter((incident) => incident.estadoReporte === selectedFilter)
 
-  const renderIncidentItem = ({ item, index }) => {
-    let statusColor, statusText, statusGradient
-
-    switch (item.status) {
-      case "resolved":
-        statusColor = "#8BC34A"
-        statusText = "Resuelto"
-        statusGradient = ["#8BC34A", "#4CAF50"]
-        break
-      case "in_progress":
-        statusColor = "#FF9800"
-        statusText = "En Proceso"
-        statusGradient = ["#FF9800", "#FF5722"]
-        break
-      case "pending":
-        statusColor = "#E91E63"
-        statusText = "Pendiente"
-        statusGradient = ["#E91E63", "#9C27B0"]
-        break
-      default:
-        statusColor = "#999"
-        statusText = "Desconocido"
-        statusGradient = ["#999", "#666"]
-    }
-
-    // Animación para cada elemento de la lista
-    const itemFadeAnim = useRef(new Animated.Value(0)).current
-    const itemSlideAnim = useRef(new Animated.Value(50)).current
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(itemFadeAnim, {
-          toValue: 1,
-          duration: 500,
-          delay: index * 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(itemSlideAnim, {
-          toValue: 0,
-          duration: 500,
-          delay: index * 100,
-          easing: Easing.out(Easing.exp),
-          useNativeDriver: true,
-        }),
-      ]).start()
-    }, [index])
-
-    return (
-      <Animated.View
-        style={{
-          opacity: itemFadeAnim,
-          transform: [{ translateY: itemSlideAnim }],
-        }}
-      >
-        <TouchableOpacity style={styles.incidentCard} activeOpacity={0.9}>
-          <View style={styles.incidentHeader}>
-            <Text style={styles.incidentType}>{item.type}</Text>
-            <LinearGradient
-              colors={statusGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.statusBadge}
-            >
-              <Text style={styles.statusBadgeText}>{statusText}</Text>
-            </LinearGradient>
-          </View>
-
-          <View style={styles.incidentContent}>
-            <View style={styles.incidentImageContainer}>
-              <Image
-                source={{ uri: `https://placeholder.svg?height=80&width=80&text=Incidente${item.id}` }}
-                style={styles.incidentImage}
-              />
-            </View>
-            <View style={styles.incidentDetails}>
-              <View style={styles.locationContainer}>
-                <Ionicons name="location" size={16} color="#666" />
-                <Text style={styles.incidentLocation}>{item.location}</Text>
-              </View>
-              <View style={styles.dateContainer}>
-                <Ionicons name="calendar" size={16} color="#666" />
-                <Text style={styles.incidentDate}>Reportado: {item.date}</Text>
-              </View>
-              <Text style={styles.incidentDescription} numberOfLines={2}>
-                {item.description}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.incidentFooter}>
-            <TouchableOpacity style={styles.detailsButton}>
-              <Text style={styles.detailsButtonText}>Ver Detalles</Text>
-              <Ionicons name="chevron-forward" size={16} color="#E91E63" />
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
-    )
+  const renderIncidentItem = ({ item, index }: { item: IncidentItem; index: number }) => {
+    return <AnimatedIncidentItem item={item} index={index} />
   }
 
   return (
@@ -198,29 +219,42 @@ export default function MyIncidentsScreen() {
             <Text style={[styles.filterText, selectedFilter === "all" && styles.filterTextActive]}>Todos</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterButton, selectedFilter === "pending" && styles.filterButtonActive]}
-            onPress={() => setSelectedFilter("pending")}
+            style={[styles.filterButton, selectedFilter === "pendiente" && styles.filterButtonActive]}
+            onPress={() => setSelectedFilter("pendiente")}
           >
-            <Text style={[styles.filterText, selectedFilter === "pending" && styles.filterTextActive]}>Pendientes</Text>
+            <Text style={[styles.filterText, selectedFilter === "pendiente" && styles.filterTextActive]}>Pendientes</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterButton, selectedFilter === "in_progress" && styles.filterButtonActive]}
-            onPress={() => setSelectedFilter("in_progress")}
+            style={[styles.filterButton, selectedFilter === "en_proceso" && styles.filterButtonActive]}
+            onPress={() => setSelectedFilter("en_proceso")}
           >
-            <Text style={[styles.filterText, selectedFilter === "in_progress" && styles.filterTextActive]}>
+            <Text style={[styles.filterText, selectedFilter === "en_proceso" && styles.filterTextActive]}>
               En Proceso
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterButton, selectedFilter === "resolved" && styles.filterButtonActive]}
-            onPress={() => setSelectedFilter("resolved")}
+            style={[styles.filterButton, selectedFilter === "resuelto" && styles.filterButtonActive]}
+            onPress={() => setSelectedFilter("resuelto")}
           >
-            <Text style={[styles.filterText, selectedFilter === "resolved" && styles.filterTextActive]}>Resueltos</Text>
+            <Text style={[styles.filterText, selectedFilter === "resuelto" && styles.filterTextActive]}>Resueltos</Text>
           </TouchableOpacity>
         </BlurView>
       </Animated.View>
 
-      {filteredIncidents.length === 0 ? (
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E91E63" />
+          <Text style={styles.loadingText}>Cargando incidencias...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchIncidents}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      ) : filteredIncidents.length === 0 ? (
         <Animated.View
           style={[
             styles.emptyContainer,
@@ -239,16 +273,16 @@ export default function MyIncidentsScreen() {
       ) : (
         <FlatList
           data={filteredIncidents}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => <IncidentItem item={item} index={index} />}
+          keyExtractor={(item) => item.idIncidencia.toString()}
+          renderItem={renderIncidentItem}
           contentContainerStyle={styles.listContainer}
+          refreshing={isLoading}
+          onRefresh={fetchIncidents}
         />
       )}
     </SafeAreaView>
   )
 }
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -407,5 +441,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#E91E63",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "#E91E63",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
 })

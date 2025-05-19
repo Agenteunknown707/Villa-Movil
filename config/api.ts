@@ -1,7 +1,7 @@
 // Configuración de la API
 export const API_CONFIG = {
     // IP base para desarrollo
-    BASE_URL: 'http://192.168.1.2:4000/api',
+    BASE_URL: 'http://192.168.1.5:4000/api',
     
     // Endpoints
     ENDPOINTS: {

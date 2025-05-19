@@ -124,10 +124,12 @@ export default function ReportIncidentScreen() {
   }, [])
 
   // Al hacer tap en el mapa, guardar coordenadas seleccionadas
-  const handleMapPress = (event: MapPressEvent) => {
+    const handleMapPress = (event: MapPressEvent) => {
     const { latitude, longitude } = event.nativeEvent.coordinate
     setSelectedLocation({ latitude, longitude })
     setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
+
+    fetchAddressFromCoordinates(latitude, longitude) // ← Aquí
   }
 
   // Seleccionar imagen desde galería
@@ -283,6 +285,38 @@ export default function ReportIncidentScreen() {
       setIsSubmitting(false)
     }
   }
+  
+  // Función para obtener la dirección a partir de las coordenadas
+  //estado para la dirección completa
+  const [addressDetails, setAddressDetails] = useState<{
+    street?: string
+    district?: string
+    postalCode?: string
+    city?: string
+    region?: string
+  }>({})
+
+  const fetchAddressFromCoordinates = async (latitude: number, longitude: number) => {
+  try {
+    const geocode = await Location.reverseGeocodeAsync({ latitude, longitude })
+
+    if (geocode.length > 0) {
+      const info = geocode[0]
+      setAddressDetails({
+        street: info.street || '',
+        district: info.district || '',
+        postalCode: info.postalCode || '',
+        city: info.city || '',
+        region: info.region || '',
+      })
+
+      // Opcionalmente actualiza el campo de texto de ubicación
+      setLocation(`${info.street || ''}, ${info.district || ''}, ${info.postalCode || ''}, ${info.city || ''}, ${info.region || ''}`)
+    }
+  } catch (error) {
+    console.error('Error fetching address:', error)
+  }
+}
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
@@ -396,6 +430,13 @@ export default function ReportIncidentScreen() {
                       Coordenadas seleccionadas: {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
                     </Text>
                   </View>
+                )}
+                {addressDetails && (
+                <View style={{ marginTop: 8, padding: 8, backgroundColor: "rgba(255,255,255,0.8)", borderRadius: 8 }}>
+                  <Text style={{ fontSize: 14, color: "#333" }}>
+                    Dirección: {addressDetails.street}, {addressDetails.district}, {addressDetails.postalCode}, {addressDetails.city}, {addressDetails.region}
+                  </Text>
+                </View>
                 )}
               <View style={styles.mapOverlay}>
                 <BlurView intensity={50} tint="dark" style={styles.mapTextContainer}>

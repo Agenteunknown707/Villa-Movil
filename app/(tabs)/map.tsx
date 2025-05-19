@@ -15,6 +15,7 @@ import MapView, { Marker } from "react-native-maps"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
+import * as Location from "expo-location"
 
 const { width, height } = Dimensions.get("window")
 
@@ -81,6 +82,33 @@ export default function MapScreen() {
     setDrawerVisible(!drawerVisible)
   }
 
+// NUEVOS STATES JOCELIN
+const [selectedLocation, setSelectedLocation] = useState(null)
+const [locationLabelVisible, setLocationLabelVisible] = useState(true)
+const [addressInfo, setAddressInfo] = useState(null)
+
+// FUNCION PARA CUANDO SE TOQUE EL MAPA
+const handleMapPress = async (event) => {
+  const { latitude, longitude } = event.nativeEvent.coordinate
+  setSelectedLocation({ latitude, longitude })
+  setLocationLabelVisible(false)
+
+  try {
+    const address = await Location.reverseGeocodeAsync({ latitude, longitude })
+    if (address.length > 0) {
+      const info = address[0]
+      setAddressInfo({
+        calle: info.street || "Desconocida",
+        colonia: info.district || "Desconocida",
+        codigoPostal: info.postalCode || "Desconocido",
+        ciudad: info.city || info.region || "Desconocida",
+      })
+    }
+  } catch (error) {
+    console.error("Error al obtener la dirección:", error)
+  }
+}
+
   return (
     <View style={styles.container}>
       {/* Filtros arriba */}
@@ -100,7 +128,7 @@ export default function MapScreen() {
 
       {/* Mapa real con react-native-maps */}
       <Animated.View style={[styles.mapContainer, { opacity: fadeAnim, transform: [{ scale: mapScaleAnim }] }]}>
-        <MapView
+        <MapView 
           style={StyleSheet.absoluteFillObject}
           initialRegion={{
             latitude: 19.2676,
@@ -108,6 +136,7 @@ export default function MapScreen() {
             latitudeDelta: 0.02,
             longitudeDelta: 0.02,
           }}
+          onPress={handleMapPress}
         >
           
           {filteredIncidents.map((incident) => {

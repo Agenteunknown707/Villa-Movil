@@ -5,10 +5,10 @@ import { BlurView } from "expo-blur"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useState } from "react"
 
-export default function TabsLayout() {
+export default function TabLayout() {
   const insets = useSafeAreaInsets()
 
-  const CustomHeader = ({ title }) => {
+  const CustomHeader = ({ title }: { title: string }) => {
     const [showNotifications, setShowNotifications] = useState(false)
 
     const toggleNotifications = () => {
@@ -73,7 +73,7 @@ export default function TabsLayout() {
 
           return (
             <View style={focused ? styles.activeIconContainer : null}>
-              <Ionicons name={iconName} size={size} color={color} />
+              <Ionicons name={iconName as any} size={size} color={color} />
             </View>
           )
         },
@@ -93,7 +93,7 @@ export default function TabsLayout() {
           fontSize: 11,
         },
         header: ({ route, options }) => {
-          return <CustomHeader title={options.headerTitle || route.name} />
+          return <CustomHeader title={options.headerTitle as string || route.name} />
         },
       })}
     >
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "bold",
   },
-    notificationDropdown: {
+  notificationDropdown: {
     position: "absolute",
     top: 40,
     right: -10,

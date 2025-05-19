@@ -17,12 +17,13 @@ import {
   Alert
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { useRouter } from "expo-router"
+import { useRouter, Link } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import { Ionicons } from "@expo/vector-icons"
 import { BlurView } from "expo-blur"
 import axios from "axios"
 import { buildApiUrl, API_CONFIG } from "../../config/api"
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get("window")
 
@@ -30,8 +31,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [secureTextEntry, setSecureTextEntry] = useState(true)
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { login, isLoading: authLoading, error: authError } = useAuth();
 
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -61,90 +62,41 @@ export default function LoginScreen() {
   }, [])
 
   const handleLogin = async () => {
-    // Validaciones básicas
     if (!email || !password) {
-      Alert.alert('Error', 'Por favor ingresa tu correo y contraseña');
+      Alert.alert('Error', 'Por favor, ingrese correo y contraseña.');
       return;
     }
 
     try {
-      setIsLoading(true);
-      
-      // Primero obtenemos el usuario por email
-      const emailUrl = buildApiUrl(`${API_CONFIG.ENDPOINTS.CIUDADANOS}/email/${email}`);
-      console.log('Consultando usuario:', emailUrl);
-
-      const response = await axios.get(emailUrl, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        timeout: 10000
-      });
+      console.log('Consultando usuario:', buildApiUrl(`${API_CONFIG.ENDPOINTS.CIUDADANOS}/email/${email}`));
+      const response = await axios.get(buildApiUrl(`${API_CONFIG.ENDPOINTS.CIUDADANOS}/email/${email}`));
 
       if (response.data) {
-        const ciudadano = response.data;
-        console.log('Datos recibidos del servidor:', ciudadano);
+        const userData = response.data;
+        console.log('Datos recibidos del servidor:', userData);
         console.log('Contraseña ingresada:', password);
-        console.log('Contraseña en la base de datos:', ciudadano.contraseña);
-        
+        console.log('Contraseña en la base de datos:', userData.contraseña);
+
         // Verificamos la contraseña
-        if (ciudadano.contraseña === password) {
-          // Login exitoso
-          Alert.alert(
-            'Éxito',
-            'Inicio de sesión exitoso',
-            [
-              {
-                text: 'OK',
-                onPress: () => router.navigate("/(tabs)")
-              }
-            ]
-          );
+        if (userData.contraseña === password) {
+          console.log('Contraseñas coinciden. Inicio de sesión exitoso.');
+
+          // Llamar a la función login del contexto con los datos del usuario
+          await login(userData); // Pasamos los datos del usuario
+          // La redirección ahora la maneja el AuthContext
+
         } else {
           Alert.alert('Error', 'Contraseña incorrecta');
         }
-      }
-    } catch (error: unknown) {
-      console.error('Error completo:', error);
-      
-      if (axios.isAxiosError(error)) {
-        console.error('Detalles del error:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: error.message,
-          code: error.code
-        });
-        
-        if (error.response?.status === 404) {
-          Alert.alert('Error', 'No existe una cuenta con este correo electrónico');
-        } else if (error.code === 'ECONNABORTED') {
-          Alert.alert('Error', 'La conexión al servidor tardó demasiado. Por favor, intenta de nuevo.');
-        } else if (error.code === 'ERR_NETWORK') {
-          Alert.alert(
-            'Error de Conexión',
-            'No se pudo conectar con el servidor. Por favor, verifica que:\n\n' +
-            '1. El servidor esté corriendo\n' +
-            '2. Estés conectado a la misma red WiFi\n' +
-            '3. La IP del servidor sea correcta'
-          );
-        } else {
-          Alert.alert(
-            'Error',
-            error.response?.data?.error || 
-            error.response?.data?.message || 
-            error.message || 
-            'Error al iniciar sesión'
-          );
-        }
       } else {
-        console.error('Error no relacionado con axios:', error);
-        Alert.alert('Error', 'Error al iniciar sesión');
+        Alert.alert('Error', 'Usuario no encontrado con ese correo electrónico.');
       }
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      console.error('Login API Error:', error);
+      const errorMessage = error.response?.data?.error || 'Ocurrió un error al iniciar sesión.';
+      Alert.alert('Error', errorMessage);
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -214,9 +166,9 @@ export default function LoginScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={[styles.loginButtonContainer, isLoading && styles.disabledButton]} 
+                style={[styles.loginButtonContainer, authLoading && styles.disabledButton]} 
                 onPress={handleLogin} 
-                disabled={isLoading}
+                disabled={authLoading}
                 activeOpacity={0.8}
               >
                 <LinearGradient
@@ -226,7 +178,7 @@ export default function LoginScreen() {
                   style={styles.loginButton}
                 >
                   <Text style={styles.loginButtonText}>
-                    {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                    {authLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -241,6 +193,9 @@ export default function LoginScreen() {
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <Link href="/(tabs)" style={styles.link}>
+        Go to Home
+      </Link>
     </SafeAreaView>
   )
 }
@@ -387,5 +342,9 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  link: {
+    color: '#E91E63',
+    fontSize: 16,
   },
 })

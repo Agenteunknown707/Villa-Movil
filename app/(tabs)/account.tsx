@@ -1,92 +1,54 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Alert, Animated, ActivityIndicator } from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
-import { Ionicons } from "@expo/vector-icons"
-import { useRouter } from "expo-router"
-import { LinearGradient } from "expo-linear-gradient"
-import { BlurView } from "expo-blur"
-import axios from "axios"
-import { API_CONFIG, buildApiUrl } from "../../config/api"
-
-interface Ciudadano {
-  idCiudadano: number;
-  primerNombre: string;
-  segundoNombre: string | null;
-  primerApellido: string;
-  segundoApellido: string | null;
-  correo: string;
-  numero: string;
-  fechaCreacion: string;
-  fechaActualizacion: string;
-}
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, Animated, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { useAuth } from '../../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AccountScreen() {
-  const router = useRouter()
-  const [isEditing, setIsEditing] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const { user, isLoading: authLoading, error: authError, logout, updateUser } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState(user);
+  const insets = useSafeAreaInsets();
 
-  // Estado para los datos del usuario
-  const [userData, setUserData] = useState<Ciudadano>({
-    idCiudadano: 0,
-    primerNombre: "",
-    segundoNombre: "",
-    primerApellido: "",
-    segundoApellido: "",
-    correo: "",
-    numero: "",
-    fechaCreacion: "",
-    fechaActualizacion: ""
-  })
+  useEffect(() => {
+    if (user) {
+      setEditedUser(user);
+    } else {
+      setEditedUser(null);
+    }
+  }, [user]);
 
   // Animaciones
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const slideAnim = useRef(new Animated.Value(30)).current
-  const avatarScaleAnim = useRef(new Animated.Value(0.8)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const avatarScaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 800,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.spring(avatarScaleAnim, {
         toValue: 1,
         friction: 8,
-        tension: 40,
         useNativeDriver: true,
       }),
-    ]).start()
-  }, [])
-
-  // Función para obtener los datos del usuario
-  const fetchUserData = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      // TODO: Reemplazar el ID hardcodeado con el ID del usuario actual
-      const response = await axios.get(buildApiUrl(`${API_CONFIG.ENDPOINTS.CIUDADANOS}/4`))
-      setUserData(response.data)
-    } catch (err) {
-      console.error('Error fetching user data:', err)
-      setError('No se pudieron cargar los datos del usuario')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Cargar datos del usuario al montar el componente
-  useEffect(() => {
-    fetchUserData()
-  }, [])
+    ]).start();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
@@ -97,39 +59,44 @@ export default function AccountScreen() {
       {
         text: "Sí, cerrar sesión",
         onPress: () => {
-          router.replace("/(auth)")
+          logout();
         },
       },
-    ])
-  }
+    ]);
+  };
 
   const handleSaveChanges = async () => {
+    if (!editedUser) return;
+    
     try {
-      // TODO: Implementar la actualización de datos
-      setIsEditing(false)
-      Alert.alert("Éxito", "Información actualizada correctamente")
+      await updateUser(editedUser);
+      setIsEditing(false);
+      Alert.alert('Éxito', 'Datos actualizados correctamente');
     } catch (error) {
-      Alert.alert("Error", "No se pudo actualizar la información")
+      console.error('Error saving user data:', error);
+      Alert.alert('Error', 'No se pudieron actualizar los datos');
     }
-  }
+  };
 
   const handleChangePassword = () => {
-    Alert.alert("Cambiar Contraseña", "Esta funcionalidad estará disponible próximamente")
-  }
+    Alert.alert("Cambiar Contraseña", "Esta funcionalidad estará disponible próximamente");
+  };
 
-  // Función para obtener el nombre completo
-  const getFullName = () => {
-    const nombres = [userData.primerNombre, userData.segundoNombre].filter(Boolean).join(" ")
-    const apellidos = [userData.primerApellido, userData.segundoApellido].filter(Boolean).join(" ")
-    return `${nombres} ${apellidos}`
-  }
+  const getFullName = (userToDisplay: typeof user) => {
+    if (!userToDisplay) return '';
+    const names = [userToDisplay.primerNombre, userToDisplay.segundoNombre].filter(Boolean).join(' ');
+    const lastNames = [userToDisplay.primerApellido, userToDisplay.segundoApellido].filter(Boolean).join(' ');
+    return `${names} ${lastNames}`.trim();
+  };
 
-  // Función para obtener las iniciales
-  const getInitials = () => {
-    return `${userData.primerNombre[0]}${userData.primerApellido[0]}`
-  }
+  const getInitials = (userToDisplay: typeof user) => {
+    if (!userToDisplay) return '';
+    const firstInitial = userToDisplay.primerNombre.charAt(0);
+    const lastInitial = userToDisplay.primerApellido.charAt(0);
+    return `${firstInitial}${lastInitial}`.toUpperCase();
+  };
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.loadingContainer}>
@@ -137,25 +104,33 @@ export default function AccountScreen() {
           <Text style={styles.loadingText}>Cargando datos...</Text>
         </View>
       </SafeAreaView>
-    )
+    );
   }
 
-  if (error) {
+  if (authError) {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchUserData}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </TouchableOpacity>
+          <Text style={styles.errorText}>{authError}</Text>
         </View>
       </SafeAreaView>
-    )
+    );
+  }
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
+          <Text style={styles.errorText}>No hay datos de usuario disponibles</Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Animated.View
           style={[
@@ -179,7 +154,7 @@ export default function AccountScreen() {
                 colors={["rgba(233, 30, 99, 0.7)", "rgba(156, 39, 176, 0.7)"]}
                 style={styles.avatarGradient}
               >
-                <Text style={styles.avatarText}>{getInitials()}</Text>
+                <Text style={styles.avatarText}>{getInitials(user)}</Text>
               </LinearGradient>
               {!isEditing && (
                 <TouchableOpacity style={styles.editAvatarButton}>
@@ -191,7 +166,7 @@ export default function AccountScreen() {
             </Animated.View>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{getFullName()}</Text>
+              <Text style={styles.profileName}>{getFullName(user)}</Text>
               <View style={styles.profileRoleContainer}>
                 <LinearGradient
                   colors={["#E91E63", "#9C27B0"]}
@@ -248,20 +223,27 @@ export default function AccountScreen() {
                 {isEditing ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={getFullName()}
+                    value={getFullName(editedUser)}
                     onChangeText={(text) => {
-                      const [primerNombre, segundoNombre, primerApellido, segundoApellido] = text.split(" ")
-                      setUserData({
-                        ...userData,
-                        primerNombre: primerNombre || "",
-                        segundoNombre: segundoNombre || "",
-                        primerApellido: primerApellido || "",
-                        segundoApellido: segundoApellido || ""
-                      })
+                      const parts = text.split(" ").filter(Boolean);
+                      const primerNombre = parts[0] || "";
+                      const primerApellido = parts[parts.length - 1] || "";
+                      const segundoNombre = parts.length > 2 ? parts.slice(1, -1).join(" ") : "";
+                      const segundoApellido = parts.length > 1 ? "" : "";
+
+                      if (editedUser) {
+                        setEditedUser({
+                          ...editedUser,
+                          primerNombre: primerNombre,
+                          segundoNombre: segundoNombre || null,
+                          primerApellido: primerApellido,
+                          segundoApellido: segundoApellido || null
+                        });
+                      }
                     }}
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{getFullName()}</Text>
+                  <Text style={styles.infoValue}>{getFullName(user)}</Text>
                 )}
               </View>
             </View>
@@ -275,12 +257,12 @@ export default function AccountScreen() {
                 {isEditing ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.correo}
-                    onChangeText={(text) => setUserData({ ...userData, correo: text })}
+                    value={editedUser?.correo || ''}
+                    onChangeText={(text) => editedUser && setEditedUser({ ...editedUser, correo: text })}
                     keyboardType="email-address"
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{userData.correo}</Text>
+                  <Text style={styles.infoValue}>{user.correo}</Text>
                 )}
               </View>
             </View>
@@ -294,12 +276,12 @@ export default function AccountScreen() {
                 {isEditing ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={userData.numero}
-                    onChangeText={(text) => setUserData({ ...userData, numero: text })}
+                    value={editedUser?.numero || ''}
+                    onChangeText={(text) => editedUser && setEditedUser({ ...editedUser, numero: text })}
                     keyboardType="phone-pad"
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{userData.numero}</Text>
+                  <Text style={styles.infoValue}>{user.numero}</Text>
                 )}
               </View>
             </View>
@@ -344,31 +326,31 @@ export default function AccountScreen() {
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
   },
   scrollView: {
     padding: 16,
   },
   profileHeader: {
     borderRadius: 20,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 20,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
     elevation: 10,
   },
   profileHeaderBlur: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
   },
   avatarContainer: {
-    position: "relative",
+    position: 'relative',
     marginRight: 16,
   },
   avatarGradient: {
@@ -376,38 +358,38 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     padding: 3,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatarText: {
     fontSize: 32,
-    fontWeight: "bold",
-    color: "white",
+    fontWeight: 'bold',
+    color: 'white',
   },
   editAvatarButton: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     right: 0,
     borderRadius: 15,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   editAvatarGradient: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 6,
   },
   profileRoleContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   profileRoleBadge: {
     paddingHorizontal: 10,
@@ -415,28 +397,28 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   profileRoleText: {
-    color: "white",
+    color: 'white',
     fontSize: 12,
   },
   editButton: {
     borderRadius: 20,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   editButtonBlur: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   editButtonText: {
-    color: "#E91E63",
+    color: '#E91E63',
     marginLeft: 4,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   saveButtonContainer: {
     borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: "#E91E63",
+    overflow: 'hidden',
+    shadowColor: '#E91E63',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -446,22 +428,22 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
   },
   saveButtonText: {
-    color: "white",
+    color: 'white',
     marginLeft: 4,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   sectionContainer: {
     borderRadius: 20,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 20,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
     elevation: 10,
   },
   sectionBlur: {
@@ -469,22 +451,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
-    color: "#333",
+    color: '#333',
   },
   infoItem: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 16,
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
   },
   infoIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(233, 30, 99, 0.1)",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: 'rgba(233, 30, 99, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
   infoContent: {
@@ -492,31 +474,31 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: "#666",
+    color: '#666',
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 16,
-    color: "#333",
+    color: '#333',
   },
   infoInput: {
     fontSize: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E91E63",
+    borderBottomColor: '#E91E63',
     paddingVertical: 4,
-    color: "#333",
+    color: '#333',
   },
   securityItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   securityIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(233, 30, 99, 0.1)",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: 'rgba(233, 30, 99, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
   securityContent: {
@@ -524,17 +506,17 @@ const styles = StyleSheet.create({
   },
   securityLabel: {
     fontSize: 16,
-    color: "#333",
+    color: '#333',
   },
   securityDescription: {
     fontSize: 14,
-    color: "#666",
+    color: '#666',
   },
   logoutButtonContainer: {
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 30,
-    shadowColor: "#E91E63",
+    shadowColor: '#E91E63',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -544,50 +526,39 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   logoutButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     height: 55,
     borderRadius: 12,
   },
   logoutButtonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: 'white',
+    fontWeight: 'bold',
     marginLeft: 8,
     fontSize: 16,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: "#666",
+    color: '#666',
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   errorText: {
     marginTop: 10,
     fontSize: 16,
-    color: "#E91E63",
-    textAlign: "center",
+    color: '#E91E63',
+    textAlign: 'center',
     marginBottom: 20,
   },
-  retryButton: {
-    backgroundColor: "#E91E63",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-})
+});

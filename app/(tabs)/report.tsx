@@ -63,11 +63,11 @@ export default function ReportIncidentScreen() {
 
   // Mapeo de categorías recibidas como parámetro
   const categoryMapping: Record<string, string> = {
-    "1": "pothole",
-    "2": "lighting",
-    "3": "garbage",
-    "4": "water_leak",
-    "5": "signage",
+    "1": "bache",
+    "2": "alumbrado",
+    "3": "basura",
+    "4": "agua",
+    "5": "señal",
   }
 
   // Asignar tipo de incidencia si viene por parámetros
@@ -209,32 +209,85 @@ export default function ReportIncidentScreen() {
   const createReport = async (imageUrl: string) => {
     try {
       const reportData = {
-        tipo: incidentType,
-        descripcion: description,
+        categoria: incidentType,
+        descripcionCiudadano: description,
         ubicacion: location,
+        calle: addressDetails.street,
+        colonia: addressDetails.district,
+        codigoPostal: addressDetails.postalCode,
+        ciudad: addressDetails.city,
+        estadoUbicacion: addressDetails.region,
         latitud: selectedLocation?.latitude || 0,
         longitud: selectedLocation?.longitude || 0,
         imagenUrl: imageUrl,
-        estado: 'pendiente',
-        idCiudadano: 1, // TODO: Obtener el ID del ciudadano del contexto de autenticación
+        estadoReporte: 'pendiente',
+        prioridad: 1,
+        idCiudadano: 1,
       }
 
-      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.REPORTES), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reportData),
-      })
+      const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.REPORTES);
+      console.log('=== REPORT CREATION REQUEST ===');
+      console.log('URL:', apiUrl);
+      console.log('Method: POST');
+      console.log('Headers:', {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      });
+      console.log('Body:', JSON.stringify(reportData, null, 2));
+
+      let response;
+      try {
+        response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(reportData),
+        });
+      } catch (fetchError) {
+        console.error('Network error:', fetchError);
+        throw new Error(`Error de conexión: ${fetchError instanceof Error ? fetchError.message : 'Error desconocido'}`);
+      }
+
+      console.log('=== REPORT CREATION RESPONSE ===');
+      console.log('Status:', response.status);
+      console.log('Status Text:', response.statusText);
+      console.log('Headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+
+      let responseText;
+      try {
+        responseText = await response.text();
+        console.log('Response Body:', responseText);
+      } catch (textError) {
+        console.error('Error reading response:', textError);
+        throw new Error(`Error al leer la respuesta: ${textError instanceof Error ? textError.message : 'Error desconocido'}`);
+      }
 
       if (!response.ok) {
-        throw new Error('Error al crear el reporte')
+        let errorMessage = `Error al crear el reporte: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage += `\nDetalles: ${JSON.stringify(errorData)}`;
+        } catch (e) {
+          errorMessage += `\nRespuesta: ${responseText}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      return await response.json()
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        throw new Error(`Error al procesar la respuesta: ${responseText}`);
+      }
+
+      console.log('Parsed Response:', responseData);
+      return responseData;
     } catch (error) {
-      console.error('Error creating report:', error)
-      throw error
+      console.error('Error creating report:', error);
+      throw error;
     }
   }
 
@@ -248,11 +301,31 @@ export default function ReportIncidentScreen() {
     setIsSubmitting(true)
 
     try {
+      console.log('=== STARTING REPORT SUBMISSION ===');
+      console.log('Selected location:', selectedLocation);
+      console.log('Incident type:', incidentType);
+      console.log('Description:', description);
+
       // 1. Subir la imagen
-      const imageUrl = await uploadImage(imageSelected)
+      console.log('=== UPLOADING IMAGE ===');
+      let imageUrl;
+      try {
+        imageUrl = await uploadImage(imageSelected);
+        console.log('Image uploaded successfully:', imageUrl);
+      } catch (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        throw new Error(`Error al subir la imagen: ${uploadError instanceof Error ? uploadError.message : 'Error desconocido'}`);
+      }
 
       // 2. Crear el reporte
-      await createReport(imageUrl)
+      console.log('=== CREATING REPORT ===');
+      try {
+        const reportResponse = await createReport(imageUrl);
+        console.log('Report created successfully:', reportResponse);
+      } catch (reportError) {
+        console.error('Error creating report:', reportError);
+        throw new Error(`Error al crear el reporte: ${reportError instanceof Error ? reportError.message : 'Error desconocido'}`);
+      }
 
       // 3. Mostrar mensaje de éxito
       Alert.alert(
@@ -277,9 +350,10 @@ export default function ReportIncidentScreen() {
         ]
       )
     } catch (error) {
+      console.error('Error in handleSubmit:', error);
       Alert.alert(
         "Error",
-        "Hubo un error al enviar el reporte. Por favor, intente nuevamente."
+        `Hubo un error al enviar el reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
       )
     } finally {
       setIsSubmitting(false)
@@ -347,12 +421,12 @@ export default function ReportIncidentScreen() {
                 dropdownIconColor="#E91E63"
               >
                 <Picker.Item label="Seleccione el tipo de incidencia" value="" />
-                <Picker.Item label="Bache en calle" value="pothole" />
-                <Picker.Item label="Alumbrado público" value="lighting" />
-                <Picker.Item label="Acumulación de basura" value="garbage" />
-                <Picker.Item label="Fuga de agua" value="water_leak" />
-                <Picker.Item label="Señalización dañada" value="signage" />
-                <Picker.Item label="Otro" value="other" />
+                <Picker.Item label="Bache en calle" value="bache" />
+                <Picker.Item label="Alumbrado público" value="alumbrado" />
+                <Picker.Item label="Acumulación de basura" value="basura" />
+                <Picker.Item label="Fuga de agua" value="agua" />
+                <Picker.Item label="Señalización dañada" value="señal" />
+                <Picker.Item label="Otro" value="otro" />
               </Picker>
             </BlurView>
           </View>

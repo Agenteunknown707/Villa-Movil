@@ -1,7 +1,7 @@
 // Configuración de la API
 export const API_CONFIG = {
     // IP base para desarrollo
-    BASE_URL: 'http://192.168.1.5:4000/api',
+    BASE_URL: 'http://192.168.1.8:4000/api',
     
     // Endpoints
     ENDPOINTS: {
@@ -10,7 +10,7 @@ export const API_CONFIG = {
         DEPENDENCIAS: '/Dependencias',
         CATEGORIAS: '/Categorias',
         NOTIFICACIONES: '/Notificaciones',
-        REPORTES: '/reportes',
+        REPORTES: '/Incidencias',
         UPLOAD_IMAGE: '/upload'
     }
 };

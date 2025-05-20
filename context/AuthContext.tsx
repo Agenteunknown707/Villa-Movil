@@ -12,6 +12,8 @@ interface Ciudadano {
   segundoApellido: string | null;
   correo: string;
   numero: string;
+  // Asumimos que la contraseña no se actualiza desde aquí o se maneja por separado
+  // contraseña?: string;
 }
 
 interface AuthContextType {
@@ -123,23 +125,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Implementación para actualizar el usuario en el backend
   const updateUser = async (userData: Partial<Ciudadano>) => {
     console.log('AuthContext: Attempting to update user...', userData);
+    if (!user) {
+      console.error('AuthContext Update user Error: No user logged in.');
+      setError('No hay usuario logueado para actualizar.');
+      // No lanzar error aquí, el componente de cuenta ya maneja la ausencia de usuario
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
 
-      // TODO: Implementar la actualización real en el backend
+      // Realizar la llamada PUT a la API
+      const updateUrl = buildApiUrl(`${API_CONFIG.ENDPOINTS.CIUDADANOS}/${user.idCiudadano}`);
+      console.log('AuthContext: Sending PUT request to', updateUrl, ', data:', userData);
 
-      if (user) {
-        const updatedUser = { ...user, ...userData };
-        setUser(updatedUser);
-        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-        console.log('AuthContext: User state and storage updated.', updatedUser);
-      }
-    } catch (err) {
+      const response = await axios.put(updateUrl, userData);
+      console.log('AuthContext: Update API response:', response.data);
+
+      // Si la actualización en el backend fue exitosa, actualizamos el estado local y AsyncStorage
+      // Usar los datos devueltos por el backend si los hay, o los userData enviados si no
+      const updatedUser = { ...user, ...(response.data || userData) };
+      setUser(updatedUser);
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+
+      console.log('AuthContext: User state and storage updated after backend call.', updatedUser);
+
+    } catch (err: any) {
       console.error('AuthContext Update user Error:', err);
-      setError('Error al actualizar los datos del usuario');
+      const errorMessage = err.response?.data?.error || 'Error al actualizar los datos del usuario';
+      setError(errorMessage);
+      // Es importante lanzar el error aquí para que el componente de cuenta pueda atraparlo
+      // y mostrar una alerta al usuario, como ya está implementado.
       throw err;
     } finally {
       setIsLoading(false);

@@ -10,29 +10,50 @@ import {
   Animated,
   Dimensions,
   PanResponder,
+  ActivityIndicator,
 } from "react-native"
 import MapView, { Marker } from "react-native-maps"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
 import * as Location from "expo-location"
+import { buildApiUrl, API_CONFIG } from "../../config/api"
+
+interface LocationType {
+  latitude: number;
+  longitude: number;
+}
+
+interface AddressInfo {
+  calle: string;
+  numero: string;
+  colonia: string;
+  ciudad: string;
+  estado: string;
+  codigoPostal: string;
+}
+
+interface Incident {
+  id: number;
+  tipo: string;
+  lat: number;
+  lng: number;
+  status: string;
+  date: string;
+  descripcion: string;
+  ubicacion: string;
+}
 
 const { width, height } = Dimensions.get("window")
 
 export default function MapScreen() {
   const [selectedFilter, setSelectedFilter] = useState("pending")
   const [drawerVisible, setDrawerVisible] = useState(false)
-
-  const mapIncidents = [
-    { id: 1, type: "Bache", lat: 19.2433, lng: -103.7254, status: "pending", date: "15/04/2023" },
-    { id: 2, type: "Alumbrado", lat: 19.2456, lng: -103.7289, status: "in_progress", date: "10/04/2023" },
-    { id: 3, type: "Basura", lat: 19.2410, lng: -103.7230, status: "resolved", date: "05/04/2023" },
-    { id: 4, type: "Fuga de agua", lat: 19.2478, lng: -103.7265, status: "pending", date: "01/04/2023" },
-    { id: 5, type: "Señalización", lat: 19.2445, lng: -103.7210, status: "in_progress", date: "28/03/2023" },
-  ]
-
-  const filteredIncidents =
-    selectedFilter === "all" ? mapIncidents : mapIncidents.filter((incident) => incident.status === selectedFilter)
+  const [selectedLocation, setSelectedLocation] = useState<LocationType | null>(null)
+  const [locationLabelVisible, setLocationLabelVisible] = useState(true)
+  const [addressInfo, setAddressInfo] = useState<AddressInfo | null>(null)
+  const [incidents, setIncidents] = useState<Incident[]>([])
+  const [loading, setLoading] = useState(true)
 
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(30)).current
@@ -74,7 +95,7 @@ export default function MapScreen() {
     Animated.spring(drawerAnim, { toValue: drawerVisible ? 0 : drawerHeight - drawerMinHeight, useNativeDriver: true }).start()
   }, [drawerVisible])
 
-  const handleFilterChange = (filter) => {
+  const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter)
   }
 
@@ -82,45 +103,118 @@ export default function MapScreen() {
     setDrawerVisible(!drawerVisible)
   }
 
-// NUEVOS STATES JOCELIN
-const [selectedLocation, setSelectedLocation] = useState(null)
-const [locationLabelVisible, setLocationLabelVisible] = useState(true)
-const [addressInfo, setAddressInfo] = useState(null)
+  const handleMapPress = async (event: any) => {
+    const { latitude, longitude } = event.nativeEvent.coordinate;
+    setSelectedLocation({ latitude, longitude });
+    setLocationLabelVisible(false);
 
-// FUNCION PARA CUANDO SE TOQUE EL MAPA
-const handleMapPress = async (event) => {
-  const { latitude, longitude } = event.nativeEvent.coordinate
-  setSelectedLocation({ latitude, longitude })
-  setLocationLabelVisible(false)
-
-  try {
-    const address = await Location.reverseGeocodeAsync({ latitude, longitude })
-    if (address.length > 0) {
-      const info = address[0]
+    try {
+      const address = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude
+      });
+      
+      if (address && address.length > 0) {
+        const info = address[0];
+        setAddressInfo({
+          calle: info.street || "Desconocida",
+          numero: info.streetNumber || "S/N",
+          colonia: info.district || "Desconocida",
+          ciudad: info.city || "Villa de Álvarez",
+          estado: info.region || "Colima",
+          codigoPostal: info.postalCode || "28970"
+        });
+      } else {
+        setAddressInfo({
+          calle: "Desconocida",
+          numero: "S/N",
+          colonia: "Desconocida",
+          ciudad: "Villa de Álvarez",
+          estado: "Colima",
+          codigoPostal: "28970"
+        });
+      }
+    } catch (error) {
+      console.error("Error al obtener la dirección:", error);
       setAddressInfo({
-        calle: info.street || "Desconocida",
-        colonia: info.district || "Desconocida",
-        codigoPostal: info.postalCode || "Desconocido",
-        ciudad: info.city || info.region || "Desconocida",
-      })
+        calle: "Error al obtener dirección",
+        numero: "S/N",
+        colonia: "Desconocida",
+        ciudad: "Villa de Álvarez",
+        estado: "Colima",
+        codigoPostal: "28970"
+      });
     }
-  } catch (error) {
-    console.error("Error al obtener la dirección:", error)
+  };
+
+  // Función para obtener las incidencias de la API
+  const fetchIncidents = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.REPORTES))
+      const data = await response.json()
+      
+      // Transformar los datos al formato que necesitamos
+      const formattedIncidents = data
+        .filter((incident: any) => incident.estadoReporte.toLowerCase() !== 'rechazado')
+        .map((incident: any) => ({
+          id: incident.idIncidencia,
+          tipo: incident.categoria,
+          lat: parseFloat(incident.latitud),
+          lng: parseFloat(incident.longitud),
+          status: incident.estadoReporte.toLowerCase().trim(),
+          date: new Date(incident.fechaCreacion).toLocaleDateString(),
+          descripcion: incident.descripcionCiudadano,
+          ubicacion: incident.ubicacion
+        }))
+      
+      console.log('Incidentes cargados:', formattedIncidents.length)
+      setIncidents(formattedIncidents)
+    } catch (error) {
+      console.error('Error fetching incidents:', error)
+    } finally {
+      setLoading(false)
+    }
   }
-}
+
+  // Cargar incidencias al montar el componente
+  useEffect(() => {
+    fetchIncidents()
+  }, [])
+
+  // Modificar la lógica de filtrado
+  const filteredIncidents = incidents.filter((incident) => {
+    if (selectedFilter === "all") return true;
+    
+    switch (selectedFilter) {
+      case "pending":
+        return incident.status === "pendiente";
+      case "in_progress":
+        return incident.status === "en_proceso";
+      case "resolved":
+        return incident.status === "resuelto";
+      default:
+        return true;
+    }
+  });
 
   return (
     <View style={styles.container}>
       {/* Filtros arriba */}
       <Animated.View style={[styles.filtersContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        {["pending", "in_progress", "resolved", "all"].map((filter) => (
+        {[
+          { id: "pending", label: "Pendiente" },
+          { id: "in_progress", label: "En proceso" },
+          { id: "resolved", label: "Resuelto" },
+          { id: "all", label: "Todos" }
+        ].map((filter) => (
           <TouchableOpacity
-            key={filter}
-            style={[styles.filterButton, selectedFilter === filter && styles.filterButtonActive]}
-            onPress={() => handleFilterChange(filter)}
+            key={filter.id}
+            style={[styles.filterButton, selectedFilter === filter.id && styles.filterButtonActive]}
+            onPress={() => handleFilterChange(filter.id)}
           >
-            <Text style={[styles.filterText, selectedFilter === filter && styles.filterTextActive]}>
-              {filter === "pending" ? "Pendiente" : filter === "in_progress" ? "En proceso" : filter === "resolved" ? "Resuelto" : "Todos"}
+            <Text style={[styles.filterText, selectedFilter === filter.id && styles.filterTextActive]}>
+              {filter.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -138,32 +232,22 @@ const handleMapPress = async (event) => {
           }}
           onPress={handleMapPress}
         >
-          
-          {filteredIncidents.map((incident) => {
-            try {
-              console.log("[Marker]", incident.id, incident.status);
-              return (
-                <Marker
-                  key={incident.id}
-                  coordinate={{ latitude: incident.lat, longitude: incident.lng }}
-                  title={incident.type}
-                  description={`Estado: ${incident.status}`}
-                  pinColor={
-                    incident.status === "resolved"
-                      ? "green"
-                      : incident.status === "in_progress"
-                      ? "orange"
-                      : "red"
-                  }
-                />
-              )
-            } catch (e) {
-              console.error("Error renderizando Marker", incident, e);
-              return null;
-            }
-          })}
-        </MapView> 
-
+          {filteredIncidents.map((incident) => (
+            <Marker
+              key={incident.id}
+              coordinate={{ latitude: incident.lat, longitude: incident.lng }}
+              title={incident.tipo}
+              description={incident.descripcion}
+              pinColor={
+                incident.status === "resuelto"
+                  ? "green"
+                  : incident.status === "en_proceso"
+                  ? "orange"
+                  : "red"
+              }
+            />
+          ))}
+        </MapView>
 
         {/* Botones flotantes */}
         <TouchableOpacity style={styles.mapControlButton}>
@@ -191,30 +275,46 @@ const handleMapPress = async (event) => {
 
         <View style={styles.drawerHeader}>
           <Ionicons name="time-outline" size={20} color="#E91E63" style={styles.drawerHeaderIcon} />
-          <Text style={styles.drawerTitle}> {filteredIncidents.length} incidencias recientes</Text>
+          <Text style={styles.drawerTitle}>
+            {loading ? "Cargando..." : `${filteredIncidents.length} incidencias ${selectedFilter === "all" ? "" : selectedFilter === "pending" ? "pendientes" : selectedFilter === "in_progress" ? "en proceso" : "resueltas"}`}
+          </Text>
         </View>
 
-        <ScrollView style={styles.incidentsListContainer} showsVerticalScrollIndicator={false} contentContainerStyle={styles.incidentsListContent}>
-          {filteredIncidents.map((incident) => (
-            <TouchableOpacity key={incident.id} style={styles.incidentItem} activeOpacity={0.8}>
-              <LinearGradient colors={["#E91E63", "#9C27B0"]} style={styles.incidentDot} />
-              <View style={styles.incidentInfo}>
-                <Text style={styles.incidentType}>{incident.type}</Text>
-                <Text style={styles.incidentLocation}>Lat: {incident.lat}, Lng: {incident.lng}</Text>
-                <Text style={styles.incidentDate}>Reportado: {incident.date}</Text>
-              </View>
-              <View style={styles.incidentStatus}>
-                <Text style={styles.incidentStatusText}>
-                  {incident.status === "resolved" ? "Resuelto" : incident.status === "in_progress" ? "En proceso" : "Pendiente"}
-                </Text>
-              </View>
-              <View style={styles.incidentActions}>
-                <TouchableOpacity style={styles.incidentActionButton}>
-                  <Ionicons name="navigate" size={18} color="#E91E63" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
+        <ScrollView 
+          style={styles.incidentsListContainer} 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={styles.incidentsListContent}
+        >
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#E91E63" />
+            </View>
+          ) : filteredIncidents.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No hay incidencias que mostrar</Text>
+            </View>
+          ) : (
+            filteredIncidents.map((incident) => (
+              <TouchableOpacity key={incident.id} style={styles.incidentItem} activeOpacity={0.8}>
+                <LinearGradient colors={["#E91E63", "#9C27B0"]} style={styles.incidentDot} />
+                <View style={styles.incidentInfo}>
+                  <Text style={styles.incidentType}>{incident.tipo}</Text>
+                  <Text style={styles.incidentLocation}>{incident.ubicacion}</Text>
+                  <Text style={styles.incidentDate}>Reportado: {incident.date}</Text>
+                </View>
+                <View style={styles.incidentStatus}>
+                  <Text style={styles.incidentStatusText}>
+                    {incident.status === "resuelto" ? "Resuelto" : incident.status === "en_proceso" ? "En proceso" : "Pendiente"}
+                  </Text>
+                </View>
+                <View style={styles.incidentActions}>
+                  <TouchableOpacity style={styles.incidentActionButton}>
+                    <Ionicons name="navigate" size={18} color="#E91E63" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
       </Animated.View>
     </View>
@@ -421,5 +521,22 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(233, 30, 99, 0.1)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 })

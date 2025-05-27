@@ -130,7 +130,7 @@ export default function AccountScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       <ScrollView contentContainerStyle={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Animated.View
           style={[
@@ -336,6 +336,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     padding: 16,
+    paddingTop: 10,
   },
   profileHeader: {
     borderRadius: 20,

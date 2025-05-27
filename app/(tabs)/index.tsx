@@ -18,6 +18,7 @@ import { useRouter } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 import Carousel from "react-native-reanimated-carousel"
 import * as Location from "expo-location" // Importar la librería para obtener la ubicación
+import React from "react"
 
 const { width } = Dimensions.get("window")
 
@@ -38,6 +39,7 @@ export default function HomeScreen() {
     description: "", // Inicia vacío
     icon: "", // Inicia vacío
   })
+  const [isLoading, setIsLoading] = useState(true)
 
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false)
 
@@ -90,8 +92,9 @@ export default function HomeScreen() {
     ]).start()
   }, [])
 
-  const getWeatherData = async (latitude, longitude) => {
+  const getWeatherData = async (latitude: number, longitude: number) => {
     try {
+      setIsLoading(true)
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=21be192e8239bc79149166622e90cd30&units=metric&lang=es`
       );
@@ -112,11 +115,13 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error("Error al obtener los datos del clima:", error);
+    } finally {
+      setIsLoading(false)
     }
   };
   
 
-  const renderCategoryItem = ({ item }) => (
+  const renderCategoryItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.categoryItem} activeOpacity={0.7}>
       <View style={styles.categoryIconContainer}>
         <Ionicons name={item.icon} size={24} color="#E91E63" />
@@ -149,11 +154,19 @@ export default function HomeScreen() {
             <Text style={styles.heroSubtitle}>Ayúdanos a mejorar nuestra ciudad</Text>
               {/* Sección del clima */}
             <View style={styles.weatherContainer}>
-              <Image source={{ uri: weatherData.icon }} style={{ width: 36, height: 36 }} />
-              <View style={{ marginLeft: 12 }}>
-                <Text style={styles.weatherTemp}>{weatherData.temperature}°C</Text>
-                <Text style={styles.weatherDesc}>{weatherData.description}</Text>
-              </View>
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <Text style={styles.loadingText}>Cargando clima...</Text>
+                </View>
+              ) : (
+                <>
+                  <Image source={{ uri: weatherData.icon }} style={{ width: 36, height: 36 }} />
+                  <View style={{ marginLeft: 12 }}>
+                    <Text style={styles.weatherTemp}>{weatherData.temperature}°C</Text>
+                    <Text style={styles.weatherDesc}>{weatherData.description}</Text>
+                  </View>
+                </>
+              )}
             </View>
           </Animated.View>
         </LinearGradient>
@@ -363,5 +376,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    fontStyle: 'italic',
   },
 })

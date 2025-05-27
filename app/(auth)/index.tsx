@@ -193,9 +193,7 @@ export default function LoginScreen() {
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <Link href="/(tabs)" style={styles.link}>
-        Go to Home
-      </Link>
+      
     </SafeAreaView>
   )
 }

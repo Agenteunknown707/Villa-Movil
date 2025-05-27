@@ -83,9 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } else {
-        console.log('AuthContext useEffect[redir]: Still loading, waiting...');
+      console.log('AuthContext useEffect[redir]: Still loading, waiting...');
     }
-  }, [user, isLoading, inAuthGroup, router, segments]); // Depende de user, isLoading, inAuthGroup, router y segments
+  }, [user, isLoading, inAuthGroup, router, segments]);
 
   const login = async (userData: Ciudadano) => {
     console.log('AuthContext: Attempting login with data...', userData);
@@ -99,12 +99,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('AuthContext: User state set and stored. Redirection will be handled by effect.');
       // La redirección a tabs ahora la maneja el segundo useEffect al cambiar el estado 'user'
+      router.replace('/(tabs)');
 
     } catch (err: any) {
       console.error('AuthContext Login Error:', err);
       setError(err.response?.data?.error || 'Error al iniciar sesión');
-      // Aunque el error aquí es menos probable ya que la validación ocurrió antes,
-      // mantenemos el manejo básico de errores.
       throw err;
     } finally {
       console.log('AuthContext: Login process finished. Setting isLoading=false.');

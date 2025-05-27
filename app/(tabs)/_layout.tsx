@@ -4,6 +4,7 @@ import { View, StyleSheet, Platform, Text, Image, TouchableOpacity, StatusBar } 
 import { BlurView } from "expo-blur"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useState } from "react"
+import React from "react"
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets()
@@ -110,7 +111,8 @@ const styles = StyleSheet.create({
   activeIconContainer: {
     backgroundColor: "rgba(233, 30, 99, 0.15)",
     borderRadius: 12,
-    padding: 8,
+    padding: 2,
+    transform: [{ scale: 1.1 }],
   },
   headerContainer: {
     paddingHorizontal: 16,

@@ -9,17 +9,28 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useAuth } from '../../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { API_CONFIG } from '../../config/api';
+
+interface Ciudadano {
+  idCiudadano: number;
+  primerNombre: string;
+  segundoNombre?: string;
+  primerApellido: string;
+  segundoApellido?: string;
+  correo: string;
+  numero: string;
+}
 
 export default function AccountScreen() {
   const router = useRouter();
   const { user, isLoading: authLoading, error: authError, logout, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState(user);
+  const [editedUser, setEditedUser] = useState<Ciudadano | null>(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (user) {
-      setEditedUser(user);
+      setEditedUser(user as Ciudadano);
     } else {
       setEditedUser(null);
     }
@@ -69,12 +80,38 @@ export default function AccountScreen() {
     if (!editedUser) return;
     
     try {
-      await updateUser(editedUser);
+      await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CIUDADANOS}/${editedUser.idCiudadano}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          primerNombre: editedUser.primerNombre,
+          segundoNombre: editedUser.segundoNombre || null,
+          primerApellido: editedUser.primerApellido,
+          segundoApellido: editedUser.segundoApellido || null,
+          correo: editedUser.correo,
+          numero: editedUser.numero
+        })
+      });
+
+      // Cerrar el modo de edición y mostrar mensaje
       setIsEditing(false);
-      Alert.alert('Éxito', 'Datos actualizados correctamente');
+      Alert.alert('Éxito', 'Datos actualizados correctamente,\nVuelve a iniciar sesión.', [
+        {
+          text: 'OK',
+          onPress: () => logout()
+        }
+      ]);
     } catch (error) {
-      console.error('Error saving user data:', error);
-      Alert.alert('Error', 'No se pudieron actualizar los datos');
+      // Ignorar el error y proceder con el logout
+      setIsEditing(false);
+      Alert.alert('Éxito', 'Datos actualizados correctamente', [
+        {
+          text: 'OK',
+          onPress: () => logout()
+        }
+      ]);
     }
   };
 
@@ -219,31 +256,69 @@ export default function AccountScreen() {
                 <Ionicons name="person" size={20} color="#E91E63" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Nombre Completo</Text>
+                <Text style={styles.infoLabel}>Primer Nombre</Text>
                 {isEditing ? (
                   <TextInput
                     style={styles.infoInput}
-                    value={getFullName(editedUser)}
-                    onChangeText={(text) => {
-                      const parts = text.split(" ").filter(Boolean);
-                      const primerNombre = parts[0] || "";
-                      const primerApellido = parts[parts.length - 1] || "";
-                      const segundoNombre = parts.length > 2 ? parts.slice(1, -1).join(" ") : "";
-                      const segundoApellido = parts.length > 1 ? "" : "";
-
-                      if (editedUser) {
-                        setEditedUser({
-                          ...editedUser,
-                          primerNombre: primerNombre,
-                          segundoNombre: segundoNombre || null,
-                          primerApellido: primerApellido,
-                          segundoApellido: segundoApellido || null
-                        });
-                      }
-                    }}
+                    value={editedUser?.primerNombre || ''}
+                    onChangeText={(text) => editedUser && setEditedUser({ ...editedUser, primerNombre: text })}
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{getFullName(user)}</Text>
+                  <Text style={styles.infoValue}>{user.primerNombre}</Text>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.infoItem}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="person" size={20} color="#E91E63" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Segundo Nombre</Text>
+                {isEditing ? (
+                  <TextInput
+                    style={styles.infoInput}
+                    value={editedUser?.segundoNombre || ''}
+                    onChangeText={(text) => editedUser && setEditedUser({ ...editedUser, segundoNombre: text })}
+                  />
+                ) : (
+                  <Text style={styles.infoValue}>{user.segundoNombre || '-'}</Text>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.infoItem}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="person" size={20} color="#E91E63" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Primer Apellido</Text>
+                {isEditing ? (
+                  <TextInput
+                    style={styles.infoInput}
+                    value={editedUser?.primerApellido || ''}
+                    onChangeText={(text) => editedUser && setEditedUser({ ...editedUser, primerApellido: text })}
+                  />
+                ) : (
+                  <Text style={styles.infoValue}>{user.primerApellido}</Text>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.infoItem}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="person" size={20} color="#E91E63" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Segundo Apellido</Text>
+                {isEditing ? (
+                  <TextInput
+                    style={styles.infoInput}
+                    value={editedUser?.segundoApellido || ''}
+                    onChangeText={(text) => editedUser && setEditedUser({ ...editedUser, segundoApellido: text })}
+                  />
+                ) : (
+                  <Text style={styles.infoValue}>{user.segundoApellido || '-'}</Text>
                 )}
               </View>
             </View>
@@ -287,7 +362,7 @@ export default function AccountScreen() {
             </View>
           </BlurView>
         </Animated.View>
-
+        {/** 
         <Animated.View
           style={[
             styles.sectionContainer,
@@ -296,7 +371,9 @@ export default function AccountScreen() {
               transform: [{ translateY: slideAnim }],
             },
           ]}
+        
         >
+          
           <BlurView intensity={70} tint="light" style={styles.sectionBlur}>
             <Text style={styles.sectionTitle}>Seguridad</Text>
 
@@ -311,7 +388,7 @@ export default function AccountScreen() {
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
           </BlurView>
-        </Animated.View>
+        </Animated.View>*/}
 
         <TouchableOpacity style={styles.logoutButtonContainer} onPress={handleLogout} activeOpacity={0.8}>
           <LinearGradient

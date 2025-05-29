@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
 import { BlurView } from "expo-blur"
+import MapView, { Marker } from "react-native-maps"
 import IncidentItem from "../../components/IncidentItem"
 import axios from "axios"
 import { API_CONFIG, buildApiUrl } from "../../config/api"
@@ -42,6 +43,11 @@ interface IncidentItem {
 const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: number }) => {
   const itemFadeAnim = useRef(new Animated.Value(0)).current
   const itemSlideAnim = useRef(new Animated.Value(50)).current
+  const expandAnim = useRef(new Animated.Value(0)).current
+  const rotateAnim = useRef(new Animated.Value(0)).current
+  const [expanded, setExpanded] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [showPlaceholder, setShowPlaceholder] = useState(false)
 
   useEffect(() => {
     Animated.parallel([
@@ -60,6 +66,33 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
       }),
     ]).start()
   }, [index])
+
+  // Animación para expandir/colapsar
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(expandAnim, {
+        toValue: expanded ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(rotateAnim, {
+        toValue: expanded ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [expanded])
+
+  // Interpolaciones para animaciones
+  const detailsHeight = expandAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 300],
+  })
+
+  const iconRotation = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "90deg"],
+  })
 
   let statusColor, statusText, statusGradient
 
@@ -90,6 +123,11 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
       statusGradient = ["#999", "#666"]
   }
 
+  // Función para alternar la expansión
+  const toggleExpand = () => {
+    setExpanded(!expanded)
+  }
+
   return (
     <Animated.View
       style={{
@@ -112,10 +150,22 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
 
         <View style={styles.incidentContent}>
           <View style={styles.incidentImageContainer}>
-            <Image
-              source={{ uri: item.imagenUrl }}
-              style={styles.incidentImage}
-            />
+            {item.imagenUrl ? (
+              <Image
+                source={{ uri: `http://192.168.1.8:4000${item.imagenUrl}` }}
+                style={styles.incidentImage}
+                onError={(e) => {
+                  console.error('Error loading image:', e.nativeEvent.error);
+                  // Si hay error, mostrar el placeholder
+                  setShowPlaceholder(true);
+                }}
+              />
+            ) : (
+              <View style={[styles.incidentImage, styles.noImageContainer]}>
+                <Ionicons name="image-outline" size={24} color="#999" />
+                <Text style={styles.noImageText}>Sin imagen</Text>
+              </View>
+            )}
           </View>
           <View style={styles.incidentDetails}>
             <View style={styles.locationContainer}>
@@ -130,16 +180,64 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
                 Reportado: {new Date(item.fechaCreacion).toLocaleDateString()}
               </Text>
             </View>
-            <Text style={styles.incidentDescription} numberOfLines={2}>
+            <Text style={styles.incidentDescription} numberOfLines={expanded ? undefined : 2}>
               {item.descripcionCiudadano}
             </Text>
           </View>
         </View>
 
+        {/* Sección expandible con ubicación e imágenes */}
+        <Animated.View style={[styles.expandedDetails, { height: detailsHeight }]}>
+          <View style={styles.expandedContent}>
+            {/* Mapa de ubicación */}
+            <View style={styles.mapSection}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="map-outline" size={20} color="#E91E63" />
+                <Text style={styles.sectionTitle}>Ubicación en mapa</Text>
+              </View>
+              <View style={styles.mapContainer}>
+                <MapView
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: item.latitud,
+                    longitude: item.longitud,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: item.latitud,
+                      longitude: item.longitud
+                    }}
+                    title={item.categoria}
+                    description={item.descripcionCiudadano}
+                    pinColor={
+                      item.estadoReporte === "resuelto"
+                        ? "green"
+                        : item.estadoReporte === "en_proceso"
+                        ? "orange"
+                        : "red"
+                    }
+                  />
+                </MapView>
+              </View>
+            </View>
+
+            
+          </View>
+        </Animated.View>
+
         <View style={styles.incidentFooter}>
-          <TouchableOpacity style={styles.detailsButton}>
-            <Text style={styles.detailsButtonText}>Ver Detalles</Text>
-            <Ionicons name="chevron-forward" size={16} color="#E91E63" />
+          <TouchableOpacity style={styles.detailsButton} onPress={toggleExpand}>
+            <Text style={styles.detailsButtonText}>
+              {expanded ? "Ocultar Detalles" : "Ver Detalles"}
+            </Text>
+            <Animated.View style={{ transform: [{ rotate: iconRotation }] }}>
+              <Ionicons name="chevron-forward" size={16} color="#E91E63" />
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -178,6 +276,7 @@ export default function MyIncidentsScreen() {
       setIsLoading(true)
       setError(null)
       const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.INCIDENCIAS))
+      console.log('Incidents data:', response.data) // Debug log
       setIncidents(response.data)
     } catch (err) {
       console.error('Error fetching incidents:', err)
@@ -370,6 +469,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 8,
+    backgroundColor: '#f0f0f0', // Add background color for better visibility
   },
   incidentDetails: {
     flex: 1,
@@ -475,5 +575,68 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+  // Estilos para la sección expandible
+  expandedDetails: {
+    overflow: "hidden",
+    marginTop: 10,
+  },
+  expandedContent: {
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginLeft: 8,
+  },
+  // Estilos para el mapa
+  mapSection: {
+    marginBottom: 16,
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: 12,
+    overflow: "hidden",
+    position: "relative",
+    backgroundColor: "#f0f0f0",
+  },
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  // Estilos para el carrusel de imágenes
+  imagesSection: {
+    marginBottom: 16,
+  },
+  imageCarouselContainer: {
+    position: "relative",
+    height: 150,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  mainImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0', // Add background color for better visibility
+  },
+  noImageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+  },
+  noImageText: {
+    marginTop: 4,
+    color: '#999',
+    fontSize: 12,
+    textAlign: 'center',
   },
 })

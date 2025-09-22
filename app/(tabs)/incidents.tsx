@@ -152,7 +152,7 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
           <View style={styles.incidentImageContainer}>
             {item.imagenUrl ? (
               <Image
-                source={{ uri: `http://192.168.1.8:4000${item.imagenUrl}` }}
+                source={{ uri: `${API_CONFIG.BASE_URL.replace('/api', '')}${item.imagenUrl}` }}
                 style={styles.incidentImage}
                 onError={(e) => {
                   console.error('Error loading image:', e.nativeEvent.error);

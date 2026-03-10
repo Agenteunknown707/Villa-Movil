@@ -46,15 +46,15 @@ export default function HomeScreen() {
   const images = [
     {
       id: 1,
-      source: require("../../assets/images/imagen1.jpg"), 
+      source: require("../../assets/images/imagencol1.jpg"), 
     },
     {
       id: 2,
-      source: require("../../assets/images/imagen2.jpg"), 
+      source: require("../../assets/images/imagencol2.jpg"), 
     },
     {
       id: 3,
-      source: require("../../assets/images/imagen3.jpg"), 
+      source: require("../../assets/images/imagencol3.jpg"), 
     },
   ]
 
@@ -124,7 +124,7 @@ export default function HomeScreen() {
   const renderCategoryItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.categoryItem} activeOpacity={0.7}>
       <View style={styles.categoryIconContainer}>
-        <Ionicons name={item.icon} size={24} color="#E91E63" />
+        <Ionicons name={item.icon} size={24} color="#002D72" />
       </View>
       <Text style={styles.categoryName}>{item.name}</Text>
     </TouchableOpacity>
@@ -136,7 +136,7 @@ export default function HomeScreen() {
         
         {/* Hero Section */}
         <LinearGradient
-          colors={["#E91E63", "#9C27B0"]}
+          colors={["#002D72", "#064ba1"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.heroSection}
@@ -224,7 +224,7 @@ export default function HomeScreen() {
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={["#E91E63", "#9C27B0"]}
+            colors={["#002D72", "#064ba1"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.reportButton}
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   categoryIconContainer: {
-    backgroundColor: "#f8bbd0",
+    backgroundColor: "#d8e8f8",
     padding: 16,
     borderRadius: 50,
     marginBottom: 8,

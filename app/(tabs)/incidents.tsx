@@ -108,9 +108,9 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
       statusGradient = ["#FF9800", "#FF5722"]
       break
     case "pendiente":
-      statusColor = "#E91E63"
+      statusColor = "#720000"
       statusText = "Pendiente"
-      statusGradient = ["#E91E63", "#9C27B0"]
+      statusGradient = ["#ec0404", "#064ba1"]
       break
     case "rechazado":
       statusColor = "#999"
@@ -192,7 +192,7 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
             {/* Mapa de ubicación */}
             <View style={styles.mapSection}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="map-outline" size={20} color="#E91E63" />
+                <Ionicons name="map-outline" size={20} color="#002D72" />
                 <Text style={styles.sectionTitle}>Ubicación en mapa</Text>
               </View>
               <View style={styles.mapContainer}>
@@ -236,7 +236,7 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
               {expanded ? "Ocultar Detalles" : "Ver Detalles"}
             </Text>
             <Animated.View style={{ transform: [{ rotate: iconRotation }] }}>
-              <Ionicons name="chevron-forward" size={16} color="#E91E63" />
+              <Ionicons name="chevron-forward" size={16} color="#002D72" />
             </Animated.View>
           </TouchableOpacity>
         </View>
@@ -342,12 +342,12 @@ export default function MyIncidentsScreen() {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E91E63" />
+          <ActivityIndicator size="large" color="#002D72" />
           <Text style={styles.loadingText}>Cargando incidencias...</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
+          <Ionicons name="alert-circle-outline" size={60} color="#002D72" />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchIncidents}>
             <Text style={styles.retryButtonText}>Reintentar</Text>
@@ -364,7 +364,7 @@ export default function MyIncidentsScreen() {
           ]}
         >
           <View style={styles.emptyIconContainer}>
-            <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
+            <Ionicons name="alert-circle-outline" size={60} color="#002D72" />
           </View>
           <Text style={styles.emptyText}>No hay incidencias que mostrar</Text>
           <Text style={styles.emptySubtext}>Los reportes que realices aparecerán aquí</Text>
@@ -411,14 +411,14 @@ const styles = StyleSheet.create({
     borderBottomColor: "transparent",
   },
   filterButtonActive: {
-    borderBottomColor: "#E91E63",
+    borderBottomColor: "#002D72",
   },
   filterText: {
     fontSize: 13,
     color: "#666",
   },
   filterTextActive: {
-    color: "#E91E63",
+    color: "#002D72",
     fontWeight: "bold",
   },
   listContainer: {
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   detailsButtonText: {
-    color: "#E91E63",
+    color: "#002D72",
     fontSize: 14,
     marginRight: 4,
   },
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "rgba(233, 30, 99, 0.1)",
+    backgroundColor: "rgba(39, 32, 225, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
@@ -561,12 +561,12 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 10,
     fontSize: 16,
-    color: "#E91E63",
+    color: "#002D72",
     textAlign: "center",
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: "#E91E63",
+    backgroundColor: "#002D72",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

@@ -23,9 +23,7 @@ export default function TabLayout() {
           <View style={styles.headerInner}>
             <View style={styles.headerLeft}>
               <Image
-                source={{
-                  uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CF5rtamPzmOvzKH9vtX77bM37exXIc.png",
-                }}
+                source={require("../../assets/images/colima.png")}
                 style={styles.headerLogo}
                 resizeMode="contain"
               />
@@ -34,7 +32,7 @@ export default function TabLayout() {
 
             <View style={styles.headerRight}>
               <TouchableOpacity style={styles.headerIconButton} onPress={toggleNotifications}>
-                <Ionicons name="notifications-outline" size={26} color="#E91E63" />
+                <Ionicons name="notifications-outline" size={26} color="#002D72" />
                 <View style={styles.notificationBadge}>
                   <Text style={styles.notificationBadgeText}>3</Text>
                 </View>
@@ -78,13 +76,13 @@ export default function TabLayout() {
             </View>
           )
         },
-        tabBarActiveTintColor: "#E91E63",
+        tabBarActiveTintColor: "#002D72",
         tabBarInactiveTintColor: "#666",
         tabBarStyle: {
           position: "absolute",
           borderTopWidth: 0,
           elevation: 0,
-          backgroundColor: "rgba(255,255,255,0.9)",
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
           height: 60 + (Platform.OS === "ios" ? insets.bottom : 0),
           paddingBottom: Platform.OS === "ios" ? insets.bottom : 0,
           backdropFilter: "blur(10px)",
@@ -109,7 +107,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   activeIconContainer: {
-    backgroundColor: "rgba(233, 30, 99, 0.15)",
+    backgroundColor: "rgba(30, 67, 233, 0.15)",
     borderRadius: 12,
     padding: 2,
     transform: [{ scale: 1.1 }],
@@ -136,7 +134,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   headerTitle: {
-    color: "#E91E63",
+    color: "#002D72",
     fontSize: 20,
     fontWeight: "bold",
   },

@@ -396,7 +396,7 @@ export default function ReportIncidentScreen() {
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <ScrollView contentContainerStyle={styles.scrollView} showsVerticalScrollIndicator={false}>
         <LinearGradient
-          colors={["rgba(233, 30, 99, 0.05)", "rgba(156, 39, 176, 0.05)"]}
+          colors={["rgba(216, 232, 248, 0.8)", "rgba(216, 232, 248, 0.8)"]}
           style={styles.gradientBackground}
         />
 
@@ -410,7 +410,7 @@ export default function ReportIncidentScreen() {
           {/* Selector de incidencia */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
-              <Ionicons name="alert-circle-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Ionicons name="alert-circle-outline" size={20} color="#002D72" style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Tipo de Incidencia</Text>
             </View>
             <BlurView intensity={70} tint="light" style={styles.pickerContainer}>
@@ -418,7 +418,7 @@ export default function ReportIncidentScreen() {
                 selectedValue={incidentType}
                 onValueChange={(itemValue) => setIncidentType(itemValue)}
                 style={styles.picker}
-                dropdownIconColor="#E91E63"
+                dropdownIconColor="#002D72"
               >
                 <Picker.Item label="Seleccione el tipo de incidencia" value="" />
                 <Picker.Item label="Bache en calle" value="bache" />
@@ -434,7 +434,7 @@ export default function ReportIncidentScreen() {
           {/* Descripción */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
-              <Ionicons name="document-text-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Ionicons name="document-text-outline" size={20} color="#002D72" style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Descripción</Text>
             </View>
             <BlurView intensity={70} tint="light" style={styles.descriptionContainer}>
@@ -454,7 +454,7 @@ export default function ReportIncidentScreen() {
           {/* Imagen */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
-              <Ionicons name="camera-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Ionicons name="camera-outline" size={20} color="#002D72" style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Fotografía</Text>
             </View>
             <TouchableOpacity style={styles.imageUploadContainer} onPress={pickImage} activeOpacity={0.8}>
@@ -462,16 +462,16 @@ export default function ReportIncidentScreen() {
                 <View style={styles.selectedImageContainer}>
                   <Image source={{ uri: imageSelected }} style={styles.selectedImage} />
                   <TouchableOpacity style={styles.removeImageButton} onPress={() => setImageSelected(null)}>
-                    <Ionicons name="close-circle" size={24} color="#E91E63" />
+                    <Ionicons name="close-circle" size={24} color="#002D72" />
                   </TouchableOpacity>
                 </View>
               ) : (
                 <LinearGradient
-                  colors={["rgba(233, 30, 99, 0.05)", "rgba(156, 39, 176, 0.05)"]}
+                  colors={["rgba(209, 207, 219, 0.43)", "rgba(246, 249, 251, 0.32)"]}
                   style={styles.uploadPlaceholder}
                 >
                   <View style={styles.cameraIconContainer}>
-                    <Ionicons name="camera" size={40} color="#E91E63" />
+                    <Ionicons name="camera" size={40} color="#002D72" />
                   </View>
                   <Text style={styles.uploadText}>Toque para agregar una fotografía</Text>
                   <Text style={styles.uploadSubtext}>Formatos: JPG, PNG (máx. 5MB)</Text>
@@ -483,7 +483,7 @@ export default function ReportIncidentScreen() {
           {/* Ubicación */}
           <View style={styles.formSection}>
             <View style={styles.sectionTitleContainer}>
-              <Ionicons name="location-outline" size={20} color="#E91E63" style={styles.sectionIcon} />
+              <Ionicons name="location-outline" size={20} color="#002D72" style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Ubicación</Text>
             </View>
             <TouchableOpacity style={styles.mapContainer} activeOpacity={0.8}>
@@ -499,14 +499,14 @@ export default function ReportIncidentScreen() {
               )}
                {/* Coordenadas seleccionadas debajo del mapa */}
                 {selectedLocation && (
-                  <View style={{ marginTop: 8, padding: 8, backgroundColor: "rgba(255,255,255,0.8)", borderRadius: 8 }}>
+                  <View style={{ marginTop: 8, padding: 8, backgroundColor: "rgba(253, 253, 253, 0.8)", borderRadius: 8 }}>
                     <Text style={{ fontSize: 14, color: "#333" }}>
                       Coordenadas seleccionadas: {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
                     </Text>
                   </View>
                 )}
                 {addressDetails && (
-                <View style={{ marginTop: 8, padding: 8, backgroundColor: "rgba(255,255,255,0.8)", borderRadius: 8 }}>
+                <View style={{ marginTop: 8, padding: 8, backgroundColor: "rgba(221, 216, 239, 0.2)", borderRadius: 8 }}>
                   <Text style={{ fontSize: 14, color: "#333" }}>
                     Dirección: {addressDetails.street}, {addressDetails.district}, {addressDetails.postalCode}, {addressDetails.city}, {addressDetails.region}
                   </Text>
@@ -519,7 +519,7 @@ export default function ReportIncidentScreen() {
               </View>
             </TouchableOpacity>
           </View>
-          {/* Puedes agregar lógica con expo-location o mapas aquí luego */}
+          {/* agregar lógica con expo-location o mapas aquí luego */}
 
           {/* Botón de enviar */}
           <TouchableOpacity
@@ -529,7 +529,7 @@ export default function ReportIncidentScreen() {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={!incidentType || !description ? ["#cccccc", "#999999"] : ["#E91E63", "#9C27B0"]}
+              colors={!incidentType || !description ? ["#9992ac", "#8a8b97"] : ["#002D72", "#064ba1"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.submitButton}
@@ -553,7 +553,7 @@ export default function ReportIncidentScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#d8e8f8",
   },
   scrollView: {
     paddingBottom: 30,
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(233, 30, 99, 0.2)",
+    borderColor: "rgba(67, 30, 233, 0.2)",
   },
   picker: {
     height: 50,
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(233, 30, 99, 0.2)",
+    borderColor: "rgba(67, 30, 233, 0.2)",
   },
   descriptionInput: {
     padding: 16,
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
   },
   characterCount: {
     fontSize: 12,
-    color: "#999",
+    color: "#3c3d42",
     textAlign: "right",
     marginTop: 4,
   },
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(233, 30, 99, 0.2)",
+    borderColor: "rgba(67, 30, 233, 0.2)",
   },
   uploadPlaceholder: {
     height: 180,
@@ -646,18 +646,18 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "rgba(233, 30, 99, 0.1)",
+    backgroundColor: "rgba(72, 43, 202, 0.2)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
   },
   uploadText: {
-    color: "#666",
+    color: "#3c3d42",
     fontSize: 16,
     marginBottom: 4,
   },
   uploadSubtext: {
-    color: "#999",
+    color: "#3c3d42",
     fontSize: 12,
   },
   selectedImageContainer: {
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: "rgba(255,255,255,0.8)",
+    backgroundColor: "rgba(67, 30, 233, 0.2)",
     borderRadius: 15,
     width: 30,
     height: 30,
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(233, 30, 99, 0.2)",
+    borderColor: "rgba(74, 30, 233, 0.2)",
   },
   mapImage: {
     width: "100%",
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
     bottom: 12,
     left: 12,
     right: 12,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(67, 30, 233, 0.2)",
     borderRadius: 8,
     padding: 8,
     flexDirection: "row",
@@ -748,7 +748,7 @@ const styles = StyleSheet.create({
     width: 90,
   },
   summaryValue: {
-    color: "#333",
+    color: "#333333",
     flex: 1,
   },
   submitButtonContainer: {

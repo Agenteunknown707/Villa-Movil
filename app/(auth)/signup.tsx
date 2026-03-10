@@ -169,7 +169,7 @@ export default function SignupScreen() {
               colors={['rgba(255,255,255,0.8)', 'rgba(255,255,255,0.6)']}
               style={styles.backButtonGradient}
             >
-              <Ionicons name="arrow-back" size={24} color="#E91E63" />
+              <Ionicons name="arrow-back" size={24} color="#002D72" />
             </LinearGradient>
           </TouchableOpacity>
           
@@ -182,12 +182,12 @@ export default function SignupScreen() {
               }
             ]}
           >
-            <Image
-              source={{ uri:'https://2021-2024.villadealvarez.gob.mx/assets/img/2021/slider_7.png' }}
+           {/**<Image
+              source={require('../../assets/images/colima.png')}
               style={styles.logo}
               resizeMode="contain"
-            />
-            <Text style={styles.appTitle}>Villa App</Text>
+            />**/}
+            <Text style={styles.appTitle}>Colima App</Text>
           </Animated.View>
           
           <Animated.View 
@@ -204,7 +204,7 @@ export default function SignupScreen() {
               <Text style={styles.headerSubtitle}>Regístrate para reportar incidencias</Text>
               
               <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="person-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Primer Nombre"
@@ -215,7 +215,7 @@ export default function SignupScreen() {
               </View>
 
               <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="person-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Segundo Nombre"
@@ -226,7 +226,7 @@ export default function SignupScreen() {
               </View>
 
               <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="person-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Apellido Paterno"
@@ -237,7 +237,7 @@ export default function SignupScreen() {
               </View>
 
               <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="person-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Apellido Materno"
@@ -248,7 +248,7 @@ export default function SignupScreen() {
               </View>
               
               <View style={styles.inputContainer}>
-                <Ionicons name="mail-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Correo Electrónico"
@@ -261,7 +261,7 @@ export default function SignupScreen() {
               </View>
               
               <View style={styles.inputContainer}>
-                <Ionicons name="call-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="call-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Número de Teléfono"
@@ -273,7 +273,7 @@ export default function SignupScreen() {
               </View>
               
               <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Contraseña"
@@ -295,7 +295,7 @@ export default function SignupScreen() {
               </View>
               
               <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Confirmar Contraseña"
@@ -323,7 +323,7 @@ export default function SignupScreen() {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={['#E91E63', '#9C27B0']}
+                  colors={['#002D72', '#064ba1']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.signupButton}
@@ -351,12 +351,12 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#d8e8f8',
   },
   appTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#E91E63',
+    color: '#002D72',
     marginTop: 10,
   },
   gradient: {
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 10,
-    shadowColor: '#E91E63',
+    shadowColor: '#002D72',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
   },
   loginLink: {
-    color: '#E91E63',
+    color: '#2c77e8',
     fontWeight: 'bold',
     fontFamily: 'Poppins-SemiBold',
   },

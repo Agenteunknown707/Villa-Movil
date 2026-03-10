@@ -113,11 +113,11 @@ export default function LoginScreen() {
             ]}
           >
             <Image
-              source={{ uri: "https://2021-2024.villadealvarez.gob.mx/assets/img/2021/slider_7.png" }}
+              source={require('../../assets/images/otrologo.jpg')}
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.appTitle}>Villa App</Text>
+            <Text style={styles.appTitle}>Colima App</Text>
           </Animated.View>
 
           <Animated.View
@@ -134,7 +134,7 @@ export default function LoginScreen() {
               <Text style={styles.welcomeSubtext}>Inicia sesión para continuar</Text>
 
               <View style={styles.inputContainer}>
-                <Ionicons name="mail-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Correo electrónico"
@@ -147,7 +147,7 @@ export default function LoginScreen() {
               </View>
 
               <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed-outline" size={20} color="#E91E63" style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={20} color="#002D72" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Contraseña"
@@ -172,7 +172,7 @@ export default function LoginScreen() {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={["#E91E63", "#9C27B0"]}
+                  colors={["#002D72", "#064ba1"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.loginButton}
@@ -201,7 +201,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#d8e8f6",
   },
   gradient: {
     position: "absolute",
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#E91E63",
+    color: "#002D72",
     marginTop: 10,
   },
   formContainer: {
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   forgotPasswordText: {
-    color: "#E91E63",
+    color: '#2c77e8',
     fontSize: 14,
     fontWeight: "500",
   },
@@ -335,14 +335,14 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   signupLink: {
-    color: "#E91E63",
+    color: '#2c77e8',
     fontWeight: "bold",
   },
   disabledButton: {
     opacity: 0.7,
   },
   link: {
-    color: '#E91E63',
+    color: '#2c77e8',
     fontSize: 16,
   },
 })

@@ -137,7 +137,7 @@ export default function AccountScreen() {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E91E63" />
+          <ActivityIndicator size="large" color="#002D72" />
           <Text style={styles.loadingText}>Cargando datos...</Text>
         </View>
       </SafeAreaView>
@@ -148,7 +148,7 @@ export default function AccountScreen() {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
+          <Ionicons name="alert-circle-outline" size={60} color="#002D72" />
           <Text style={styles.errorText}>{authError}</Text>
         </View>
       </SafeAreaView>
@@ -159,7 +159,7 @@ export default function AccountScreen() {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={60} color="#E91E63" />
+          <Ionicons name="alert-circle-outline" size={60} color="#002D72" />
           <Text style={styles.errorText}>No hay datos de usuario disponibles</Text>
         </View>
       </SafeAreaView>
@@ -188,14 +188,14 @@ export default function AccountScreen() {
               ]}
             >
               <LinearGradient
-                colors={["rgba(233, 30, 99, 0.7)", "rgba(156, 39, 176, 0.7)"]}
+                colors={["rgba(30, 30, 233, 0.7)", "rgba(39, 114, 176, 0.7)"]}
                 style={styles.avatarGradient}
               >
                 <Text style={styles.avatarText}>{getInitials(user)}</Text>
               </LinearGradient>
               {!isEditing && (
                 <TouchableOpacity style={styles.editAvatarButton}>
-                  <LinearGradient colors={["#E91E63", "#9C27B0"]} style={styles.editAvatarGradient}>
+                  <LinearGradient colors={["#002D72", "#064ba1"]} style={styles.editAvatarGradient}>
                     <Ionicons name="camera" size={18} color="white" />
                   </LinearGradient>
                 </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function AccountScreen() {
               <Text style={styles.profileName}>{getFullName(user)}</Text>
               <View style={styles.profileRoleContainer}>
                 <LinearGradient
-                  colors={["#E91E63", "#9C27B0"]}
+                  colors={["#002D72", "#064ba1"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.profileRoleBadge}
@@ -219,14 +219,14 @@ export default function AccountScreen() {
             {!isEditing ? (
               <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
                 <BlurView intensity={70} tint="light" style={styles.editButtonBlur}>
-                  <Ionicons name="create-outline" size={20} color="#E91E63" />
+                  <Ionicons name="create-outline" size={20} color="#002D72" />
                   <Text style={styles.editButtonText}>Editar</Text>
                 </BlurView>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity style={styles.saveButtonContainer} onPress={handleSaveChanges} activeOpacity={0.8}>
                 <LinearGradient
-                  colors={["#E91E63", "#9C27B0"]}
+                  colors={["#002D72", "#064ba1"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.saveButton}
@@ -253,7 +253,7 @@ export default function AccountScreen() {
 
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
-                <Ionicons name="person" size={20} color="#E91E63" />
+                <Ionicons name="person" size={20} color="#002D72" />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Primer Nombre</Text>
@@ -271,7 +271,7 @@ export default function AccountScreen() {
 
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
-                <Ionicons name="person" size={20} color="#E91E63" />
+                <Ionicons name="person" size={20} color="#002D72" />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Segundo Nombre</Text>
@@ -289,7 +289,7 @@ export default function AccountScreen() {
 
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
-                <Ionicons name="person" size={20} color="#E91E63" />
+                <Ionicons name="person" size={20} color="#002D72" />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Primer Apellido</Text>
@@ -307,7 +307,7 @@ export default function AccountScreen() {
 
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
-                <Ionicons name="person" size={20} color="#E91E63" />
+                <Ionicons name="person" size={20} color="#002D72" />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Segundo Apellido</Text>
@@ -325,7 +325,7 @@ export default function AccountScreen() {
 
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
-                <Ionicons name="mail" size={20} color="#E91E63" />
+                <Ionicons name="mail" size={20} color="#002D72" />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Correo Electrónico</Text>
@@ -344,7 +344,7 @@ export default function AccountScreen() {
 
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
-                <Ionicons name="call" size={20} color="#E91E63" />
+                <Ionicons name="call" size={20} color="#002D72" />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Número de Teléfono</Text>
@@ -392,7 +392,7 @@ export default function AccountScreen() {
 
         <TouchableOpacity style={styles.logoutButtonContainer} onPress={handleLogout} activeOpacity={0.8}>
           <LinearGradient
-            colors={["#E91E63", "#9C27B0"]}
+            colors={["#002D72", "#064ba1"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.logoutButton}
@@ -489,14 +489,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   editButtonText: {
-    color: '#E91E63',
+    color: '#002D72',
     marginLeft: 4,
     fontWeight: '500',
   },
   saveButtonContainer: {
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#E91E63',
+    shadowColor: '#002D72',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(233, 30, 99, 0.1)',
+    backgroundColor: 'rgba(54, 103, 208, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   infoInput: {
     fontSize: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E91E63',
+    borderBottomColor: '#002D72',
     paddingVertical: 4,
     color: '#333',
   },
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 30,
-    shadowColor: '#E91E63',
+    shadowColor: '#002D72',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#E91E63',
+    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },

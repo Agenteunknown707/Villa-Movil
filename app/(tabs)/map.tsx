@@ -252,17 +252,17 @@ export default function MapScreen() {
         {/* Botones flotantes */}
         <TouchableOpacity style={styles.mapControlButton}>
           <BlurView intensity={80} tint="light" style={styles.mapControlBlur}>
-            <Ionicons name="locate" size={20} color="#E91E63" />
+            <Ionicons name="locate" size={20} color="#002D72" />
           </BlurView>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.mapControlButton, { bottom: 130 }]}>
           <BlurView intensity={80} tint="light" style={styles.mapControlBlur}>
-            <Ionicons name="add" size={20} color="#E91E63" />
+            <Ionicons name="add" size={20} color="#002D72" />
           </BlurView>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.mapControlButton, { bottom: 80 }]}>
           <BlurView intensity={80} tint="light" style={styles.mapControlBlur}>
-            <Ionicons name="remove" size={20} color="#E91E63" />
+            <Ionicons name="remove" size={20} color="#002D72" />
           </BlurView>
         </TouchableOpacity>
       </Animated.View>
@@ -274,7 +274,7 @@ export default function MapScreen() {
         </View>
 
         <View style={styles.drawerHeader}>
-          <Ionicons name="time-outline" size={20} color="#E91E63" style={styles.drawerHeaderIcon} />
+          <Ionicons name="time-outline" size={20} color="#002D72" style={styles.drawerHeaderIcon} />
           <Text style={styles.drawerTitle}>
             {loading ? "Cargando..." : `${filteredIncidents.length} incidencias ${selectedFilter === "all" ? "" : selectedFilter === "pending" ? "pendientes" : selectedFilter === "in_progress" ? "en proceso" : "resueltas"}`}
           </Text>
@@ -287,7 +287,7 @@ export default function MapScreen() {
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#E91E63" />
+              <ActivityIndicator size="large" color="#002D72" />
             </View>
           ) : filteredIncidents.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -296,7 +296,7 @@ export default function MapScreen() {
           ) : (
             filteredIncidents.map((incident) => (
               <TouchableOpacity key={incident.id} style={styles.incidentItem} activeOpacity={0.8}>
-                <LinearGradient colors={["#E91E63", "#9C27B0"]} style={styles.incidentDot} />
+                <LinearGradient colors={["#002D72", "#064ba1"]} style={styles.incidentDot} />
                 <View style={styles.incidentInfo}>
                   <Text style={styles.incidentType}>{incident.tipo}</Text>
                   <Text style={styles.incidentLocation}>{incident.ubicacion}</Text>
@@ -309,7 +309,7 @@ export default function MapScreen() {
                 </View>
                 <View style={styles.incidentActions}>
                   <TouchableOpacity style={styles.incidentActionButton}>
-                    <Ionicons name="navigate" size={18} color="#E91E63" />
+                    <Ionicons name="navigate" size={18} color="#002D72" />
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   filterTextActive: {
-    color: "#E91E63",
+    color: "#064ba1",
     fontWeight: "bold",
   },
   mapContainer: {
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(233, 30, 99, 0.1)",
+    backgroundColor: "rgba(75, 47, 199, 0.1)",
     alignItems: "center",
     justifyContent: "center",
   },

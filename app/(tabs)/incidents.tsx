@@ -11,6 +11,7 @@ import IncidentItem from "../../components/IncidentItem"
 import axios from "axios"
 import { API_CONFIG, buildApiUrl } from "../../config/api"
 
+
 interface Ciudadano {
   nombre: string;
   apellido: string;
@@ -40,6 +41,67 @@ interface IncidentItem {
   ciudadano: Ciudadano;
 }
 
+const TimelineItem = ({ seg, index }: any) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(20)).current
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 200,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [])
+
+  return (
+    <Animated.View
+      style={{
+        flexDirection: "row",
+        marginBottom: 20,
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      }}
+    >
+      <View style={styles.timelineLeft}>
+        <View style={styles.timelineDot} />
+        <View style={styles.timelineLine} />
+      </View>
+
+      <View style={styles.timelineContent}>
+        <Text style={styles.timelineDate}>
+          📅 {new Date(seg.fecha).toLocaleDateString()}
+        </Text>
+
+        <Text style={styles.timelineText}>
+          {seg.descripcion}
+        </Text>
+
+        {seg.imagenes?.length > 0 && (
+          <View style={styles.timelineImages}>
+            {seg.imagenes.map((img: string, i: number) => (
+              <Image
+                key={i}
+                source={{ uri: img }}
+                style={styles.timelineImage}
+                resizeMode="contain"
+              />
+            ))}
+          </View>
+        )}
+      </View>
+    </Animated.View>
+  )
+}
+
 const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: number }) => {
   const itemFadeAnim = useRef(new Animated.Value(0)).current
   const itemSlideAnim = useRef(new Animated.Value(50)).current
@@ -48,6 +110,29 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
   const [expanded, setExpanded] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [showPlaceholder, setShowPlaceholder] = useState(false)
+  
+  const [expandedFollowUp, setExpandedFollowUp] = useState(false)
+  const followUpAnim = useRef(new Animated.Value(0)).current
+  const rotateFollowUpAnim = useRef(new Animated.Value(0)).current
+
+  const seguimientos = [
+    {
+      fecha: "2026-04-10",
+      descripcion: "Se revisó el reporte",
+      imagenes: [],
+    },
+    {
+      fecha: "2026-04-11",
+      descripcion: "Se programó reparación",
+      imagenes: [],
+    },
+    {
+      fecha: "2026-04-12",
+      descripcion: "Se reparó el bache",
+      imagenes: ["https://cdn.ntmx.me/media/2022/03/14/_hd251f6ecd7dcda54e10242e47850f6ffef4bbffe7.jpeg"],
+    },
+  ]
+  
 
   useEffect(() => {
     Animated.parallel([
@@ -83,6 +168,21 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
     ]).start()
   }, [expanded])
 
+  useEffect(() => {
+  Animated.parallel([
+    Animated.timing(followUpAnim, {
+      toValue: expandedFollowUp ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }),
+    Animated.timing(rotateFollowUpAnim, {
+      toValue: expandedFollowUp ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }),
+  ]).start()
+}, [expandedFollowUp])
+
   // Interpolaciones para animaciones
   const detailsHeight = expandAnim.interpolate({
     inputRange: [0, 1],
@@ -93,6 +193,18 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
     inputRange: [0, 1],
     outputRange: ["0deg", "90deg"],
   })
+
+  const maxFollowUpHeight = Math.min(400, seguimientos.length * 220 + 60)
+
+const followUpHeight = followUpAnim.interpolate({
+  inputRange: [0, 1],
+  outputRange: [0, maxFollowUpHeight],
+})
+
+const followUpRotation = rotateFollowUpAnim.interpolate({
+  inputRange: [0, 1],
+  outputRange: ["0deg", "90deg"],
+})
 
   let statusColor, statusText, statusGradient
 
@@ -126,6 +238,9 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
   // Función para alternar la expansión
   const toggleExpand = () => {
     setExpanded(!expanded)
+  }
+  const toggleFollowUp = () => {
+    setExpandedFollowUp(!expandedFollowUp)
   }
 
   return (
@@ -240,6 +355,34 @@ const AnimatedIncidentItem = ({ item, index }: { item: IncidentItem; index: numb
             </Animated.View>
           </TouchableOpacity>
         </View>
+
+        <View style={styles.incidentFooter}>
+          <TouchableOpacity style={styles.detailsButton} onPress={toggleFollowUp}>
+            <Text style={styles.detailsButtonText}>
+              {expandedFollowUp ? "Ocultar Seguimiento" : "Ver Seguimiento"}
+            </Text>
+
+            <Animated.View style={{ transform: [{ rotate: followUpRotation }] }}>
+              <Ionicons name="chevron-forward" size={16} color="#E91E63" />
+            </Animated.View>
+          </TouchableOpacity>
+        </View>
+
+        <Animated.View style={[styles.expandedDetails, { height: followUpHeight }]}>
+          <View style={styles.expandedContent}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="chatbubble-outline" size={20} color="#E91E63" />
+                <Text style={styles.sectionTitle}>Seguimiento de la incidencia</Text>
+              </View>
+
+              {seguimientos.map((seg, index) => (
+                <TimelineItem key={index} seg={seg} index={index} />
+              ))}
+
+          </View>
+        </Animated.View>
+
+        
       </TouchableOpacity>
     </Animated.View>
   )
@@ -505,6 +648,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#f0f0f0",
     paddingTop: 12,
     alignItems: "flex-end",
+    paddingBottom: 10,
   },
   detailsButton: {
     flexDirection: "row",
@@ -589,7 +733,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 16,
@@ -639,4 +783,75 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
+  followDescription: {
+  fontSize: 14,
+  color: "#555",
+  marginBottom: 10,
+},
+
+followImagesContainer: {
+  flexDirection: "row",
+},
+
+followImage: {
+  width: 100,
+  height: 100,
+  borderRadius: 10,
+  marginRight: 10,
+},
+timelineItem: {
+  flexDirection: "row",
+  marginBottom: 20,
+},
+
+timelineLeft: {
+  width: 20,
+  alignItems: "center",
+},
+
+timelineDot: {
+  width: 10,
+  height: 10,
+  borderRadius: 5,
+  backgroundColor: "#E91E63",
+  marginTop: 4,
+},
+
+timelineLine: {
+  width: 2,
+  flex: 1,
+  backgroundColor: "#E91E63",
+  marginTop: 2,
+},
+
+timelineContent: {
+  flex: 1,
+  paddingLeft: 10,
+},
+
+timelineDate: {
+  fontSize: 12,
+  color: "#999",
+  marginBottom: 4,
+},
+
+timelineText: {
+  fontSize: 14,
+  color: "#333",
+  marginBottom: 8,
+},
+
+timelineImages: {
+  marginTop: 10,
+  width: "100%",
+  height: "auto",
+},
+
+timelineImage: {
+  width: "100%",
+  height: 160,
+  borderRadius: 12,
+  resizeMode: "cover",
+}
+
 })
